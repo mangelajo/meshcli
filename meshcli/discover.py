@@ -593,17 +593,11 @@ def discover(address, interface_type, duration, debug, id, append_to_csv, repeat
             click.echo("-" * 30)
         
         # Create a new discoverer instance for each run to ensure clean state
-        current_id = id
-        if repeat > 1 and id:
-            current_id = f"{id}-run{run_number}"
-        elif repeat > 1:
-            current_id = f"run{run_number}"
-            
         discoverer = NearbyNodeDiscoverer(
             interface_type=interface_type, 
             device_path=address, 
             debug=debug, 
-            test_run_id=current_id, 
+            test_run_id=id, 
             csv_file=append_to_csv
         )
 
