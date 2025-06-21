@@ -16,7 +16,7 @@ class TestNearbyNodeDiscoverer:
         assert discoverer.interface is None
         assert discoverer.nearby_nodes == []
         assert discoverer.discovery_active is False
-        assert discoverer.interface_type == "serial"
+        assert discoverer.interface_type == "auto"
         assert discoverer.device_path is None
 
     def test_init_with_params(self):
@@ -28,34 +28,34 @@ class TestNearbyNodeDiscoverer:
         assert discoverer.device_path == "test.local"
         assert discoverer.debug is True
 
-    @patch("meshcli.discover.meshtastic.serial_interface.SerialInterface")
-    def test_connect_serial_success(self, mock_serial):
-        """Test successful serial connection."""
+    @patch("meshcli.discover.connect")
+    def test_connect_success(self, mock_connect):
+        """Test successful connection."""
         mock_interface = Mock()
-        mock_serial.return_value = mock_interface
+        mock_connect.return_value = mock_interface
 
         discoverer = NearbyNodeDiscoverer()
         result = discoverer.connect()
 
         assert result is True
-        mock_serial.assert_called_once()
+        mock_connect.assert_called_once_with(address=None, interface_type="auto")
         mock_interface.waitForConfig.assert_called_once()
 
-    @patch("meshcli.discover.meshtastic.serial_interface.SerialInterface")
-    def test_connect_serial_failure(self, mock_serial):
-        """Test failed serial connection."""
-        mock_serial.side_effect = Exception("Connection failed")
+    @patch("meshcli.discover.connect")
+    def test_connect_failure(self, mock_connect):
+        """Test failed connection."""
+        mock_connect.return_value = None
 
         discoverer = NearbyNodeDiscoverer()
         result = discoverer.connect()
 
         assert result is False
 
-    @patch("meshcli.discover.meshtastic.tcp_interface.TCPInterface")
-    def test_connect_tcp_success(self, mock_tcp):
-        """Test successful TCP connection."""
+    @patch("meshcli.discover.connect")
+    def test_connect_with_params(self, mock_connect):
+        """Test connection with specific parameters."""
         mock_interface = Mock()
-        mock_tcp.return_value = mock_interface
+        mock_connect.return_value = mock_interface
 
         discoverer = NearbyNodeDiscoverer(
             interface_type="tcp", device_path="test.local"
@@ -63,15 +63,8 @@ class TestNearbyNodeDiscoverer:
         result = discoverer.connect()
 
         assert result is True
-        mock_tcp.assert_called_once_with(hostname="test.local")
+        mock_connect.assert_called_once_with(address="test.local", interface_type="tcp")
         mock_interface.waitForConfig.assert_called_once()
-
-    def test_connect_invalid_interface(self):
-        """Test connection with invalid interface type."""
-        discoverer = NearbyNodeDiscoverer(interface_type="invalid")
-        result = discoverer.connect()
-
-        assert result is False
 
     def test_on_traceroute_response_inactive(self):
         """Test traceroute response handler when discovery is inactive."""
@@ -129,6 +122,6 @@ def test_discover_command_execution(mock_discoverer_class):
 
     assert result.exit_code == 0
     mock_discoverer_class.assert_called_once_with(
-        interface_type="serial", device_path=None, debug=False
+        interface_type="auto", device_path=None, debug=False
     )
     mock_discoverer.discover_nearby_nodes.assert_called_once_with(duration=1)

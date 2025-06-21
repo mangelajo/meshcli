@@ -23,55 +23,48 @@ class TestNodeLister:
         assert lister.interface_type == "tcp"
         assert lister.device_path == "test.local"
 
-    @patch("meshcli.list_nodes.meshtastic.serial_interface.SerialInterface")
-    def test_connect_serial_success(self, mock_serial):
-        """Test successful serial connection."""
+    @patch("meshcli.list_nodes.connect")
+    def test_connect_success(self, mock_connect):
+        """Test successful connection."""
         mock_interface = Mock()
-        mock_serial.return_value = mock_interface
+        mock_connect.return_value = mock_interface
 
         lister = NodeLister()
         result = lister.connect()
 
         assert result is True
-        mock_serial.assert_called_once()
+        mock_connect.assert_called_once_with(address=None, interface_type="serial")
         mock_interface.waitForConfig.assert_called_once()
 
-    @patch("meshcli.list_nodes.meshtastic.serial_interface.SerialInterface")
-    def test_connect_serial_failure(self, mock_serial):
-        """Test failed serial connection."""
-        mock_serial.side_effect = Exception("Connection failed")
+    @patch("meshcli.list_nodes.connect")
+    def test_connect_failure(self, mock_connect):
+        """Test failed connection."""
+        mock_connect.return_value = None
 
         lister = NodeLister()
         result = lister.connect()
 
         assert result is False
 
-    @patch("meshcli.list_nodes.meshtastic.tcp_interface.TCPInterface")
-    def test_connect_tcp_success(self, mock_tcp):
-        """Test successful TCP connection."""
+    @patch("meshcli.list_nodes.connect")
+    def test_connect_with_params(self, mock_connect):
+        """Test connection with specific parameters."""
         mock_interface = Mock()
-        mock_tcp.return_value = mock_interface
+        mock_connect.return_value = mock_interface
 
         lister = NodeLister(interface_type="tcp", device_path="test.local")
         result = lister.connect()
 
         assert result is True
-        mock_tcp.assert_called_once_with(hostname="test.local")
+        mock_connect.assert_called_once_with(address="test.local", interface_type="tcp")
         mock_interface.waitForConfig.assert_called_once()
 
-    def test_connect_invalid_interface(self):
-        """Test connection with invalid interface type."""
-        lister = NodeLister(interface_type="invalid")
-        result = lister.connect()
-
-        assert result is False
-
-    @patch("meshcli.list_nodes.meshtastic.serial_interface.SerialInterface")
-    def test_show_known_nodes_empty_database(self, mock_serial):
+    @patch("meshcli.list_nodes.connect")
+    def test_show_known_nodes_empty_database(self, mock_connect):
         """Test showing known nodes with empty database."""
         mock_interface = Mock()
         mock_interface.nodesByNum = {}
-        mock_serial.return_value = mock_interface
+        mock_connect.return_value = mock_interface
 
         lister = NodeLister()
 
@@ -81,8 +74,8 @@ class TestNodeLister:
         # Should indicate empty database
         mock_echo.assert_any_call("  Node database is empty")
 
-    @patch("meshcli.list_nodes.meshtastic.serial_interface.SerialInterface")
-    def test_show_known_nodes_with_nodes(self, mock_serial):
+    @patch("meshcli.list_nodes.connect")
+    def test_show_known_nodes_with_nodes(self, mock_connect):
         """Test showing known nodes with populated database."""
         mock_interface = Mock()
         mock_interface.localNode.nodeNum = 0x11111111
@@ -93,7 +86,7 @@ class TestNodeLister:
                 "lastHeard": 1640995200,  # 2022-01-01 00:00:00
             }
         }
-        mock_serial.return_value = mock_interface
+        mock_connect.return_value = mock_interface
 
         lister = NodeLister()
 
