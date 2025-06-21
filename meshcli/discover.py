@@ -367,10 +367,10 @@ class NearbyNodeDiscoverer:
             with open(self.csv_file, 'a', newline='', encoding='utf-8') as csvfile:
                 # Define fieldnames based on whether test_run_id is used
                 if self.test_run_id:
-                    fieldnames = ['Timestamp', '#', 'Test Run ID', 'Node ID', 'Short Name', 'Long Name', 
+                    fieldnames = ['Timestamp', 'Test Run ID', 'Node ID', 'Short Name', 'Long Name', 
                                 'SNR (dB)', 'RSSI (dBm)', 'SNR Towards (dB)']
                 else:
-                    fieldnames = ['Timestamp', '#', 'Node ID', 'Short Name', 'Long Name', 
+                    fieldnames = ['Timestamp', 'Node ID', 'Short Name', 'Long Name', 
                                 'SNR (dB)', 'RSSI (dBm)', 'SNR Towards (dB)']
                 
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
@@ -406,7 +406,6 @@ class NearbyNodeDiscoverer:
                     if self.test_run_id:
                         row = {
                             'Timestamp': timestamp,
-                            '#': str(i),
                             'Test Run ID': self.test_run_id,
                             'Node ID': node_id,
                             'Short Name': short_name,
@@ -418,7 +417,6 @@ class NearbyNodeDiscoverer:
                     else:
                         row = {
                             'Timestamp': timestamp,
-                            '#': str(i),
                             'Node ID': node_id,
                             'Short Name': short_name,
                             'Long Name': long_name,
@@ -498,7 +496,6 @@ class NearbyNodeDiscoverer:
                     "nearby nodes:"
                 )
                 table.add_column("Timestamp", style="white", no_wrap=True)
-                table.add_column("#", style="cyan", no_wrap=True)
                 if self.test_run_id:
                     table.add_column("Test Run ID", style="dim", no_wrap=True)
                 table.add_column("Node ID", style="magenta")
@@ -533,11 +530,11 @@ class NearbyNodeDiscoverer:
 
                     if self.test_run_id:
                         table.add_row(
-                            timestamp, str(i), self.test_run_id, node_id, short_name, long_name, snr, rssi, snr_towards
+                            timestamp, self.test_run_id, node_id, short_name, long_name, snr, rssi, snr_towards
                         )
                     else:
                         table.add_row(
-                            timestamp, str(i), node_id, short_name, long_name, snr, rssi, snr_towards
+                            timestamp, node_id, short_name, long_name, snr, rssi, snr_towards
                         )
 
                 self.console.print(table)
