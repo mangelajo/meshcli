@@ -272,7 +272,7 @@ class NearbyNodeDiscoverer:
             try:
                 dt = datetime.datetime.fromtimestamp(rx_time)
                 details.append(f"[bold white]Received:[/bold white] {dt.strftime('%Y-%m-%d %H:%M:%S')}")
-            except:
+            except (ValueError, OSError, OverflowError):
                 details.append(f"[bold white]RX Time:[/bold white] {rx_time}")
         
         return details
