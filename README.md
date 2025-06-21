@@ -39,3 +39,4 @@ Lint code:
 ```bash
 uv run flake8
 ```
+# meshcli
