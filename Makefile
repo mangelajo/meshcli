@@ -15,17 +15,17 @@ test: ## Run tests
 	uv run pytest
 
 lint: ## Run linting checks
-	uv run ruff check meshcli tests
+	uv run ruff check meshctl tests
 
 format: ## Format code with black
-	uv run black meshcli tests
+	uv run black meshctl tests
 
 fix: ## Fix linting issues automatically and format code
-	uv run ruff check --fix meshcli tests
-	uv run black meshcli tests
+	uv run ruff check --fix meshctl tests
+	uv run black meshctl tests
 
 format-check: ## Check code formatting without making changes
-	uv run black --check meshcli tests
+	uv run black --check meshctl tests
 
 install: ## Install the package in development mode
 	uv pip install -e .
@@ -33,7 +33,7 @@ install: ## Install the package in development mode
 dev-install: sync ## Install development dependencies (alias for sync)
 
 run: ## Run the CLI tool
-	uv run meshcli
+	uv run meshctl
 
 clean: ## Clean build artifacts and cache
 	rm -rf build/

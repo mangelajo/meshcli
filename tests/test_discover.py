@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 
 from click.testing import CliRunner
 
-from mesh_cli.discover import NearbyNodeDiscoverer, discover
+from meshctl.discover import NearbyNodeDiscoverer, discover
 
 
 class TestNearbyNodeDiscoverer:
@@ -28,7 +28,7 @@ class TestNearbyNodeDiscoverer:
         assert discoverer.device_path == "test.local"
         assert discoverer.debug is True
 
-    @patch("mesh_cli.discover.connect")
+    @patch("meshctl.discover.connect")
     def test_connect_success(self, mock_connect):
         """Test successful connection."""
         mock_interface = Mock()
@@ -41,7 +41,7 @@ class TestNearbyNodeDiscoverer:
         mock_connect.assert_called_once_with(address=None, interface_type="auto")
         mock_interface.waitForConfig.assert_called_once()
 
-    @patch("mesh_cli.discover.connect")
+    @patch("meshctl.discover.connect")
     def test_connect_failure(self, mock_connect):
         """Test failed connection."""
         mock_connect.return_value = None
@@ -51,7 +51,7 @@ class TestNearbyNodeDiscoverer:
 
         assert result is False
 
-    @patch("mesh_cli.discover.connect")
+    @patch("meshctl.discover.connect")
     def test_connect_with_params(self, mock_connect):
         """Test connection with specific parameters."""
         mock_interface = Mock()
@@ -90,7 +90,7 @@ class TestNearbyNodeDiscoverer:
             "relay_node": None,
         }
 
-        with patch("mesh_cli.discover.click.echo"):
+        with patch("meshctl.discover.click.echo"):
             discoverer.on_traceroute_response(packet, None)
 
         assert len(discoverer.nearby_nodes) == 1
@@ -110,7 +110,7 @@ def test_discover_command_help():
     assert "--address" in result.output
 
 
-@patch("mesh_cli.discover.NearbyNodeDiscoverer")
+@patch("meshctl.discover.NearbyNodeDiscoverer")
 def test_discover_command_execution(mock_discoverer_class):
     """Test discover command execution."""
     mock_discoverer = Mock()
@@ -122,6 +122,10 @@ def test_discover_command_execution(mock_discoverer_class):
 
     assert result.exit_code == 0
     mock_discoverer_class.assert_called_once_with(
-        interface_type="auto", device_path=None, debug=False, test_run_id=None, csv_file=None
+        interface_type="auto",
+        device_path=None,
+        debug=False,
+        test_run_id=None,
+        csv_file=None,
     )
     mock_discoverer.discover_nearby_nodes.assert_called_once_with(duration=1)
