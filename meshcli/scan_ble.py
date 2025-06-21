@@ -3,6 +3,7 @@
 import click
 import meshtastic.ble_interface
 
+
 @click.command("scan-ble")
 def scan_ble():
     """Scan for Meshtastic BLE devices."""

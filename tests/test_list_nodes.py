@@ -115,7 +115,9 @@ def test_list_nodes_command_execution(mock_lister_class):
     mock_lister_class.return_value = mock_lister
 
     runner = CliRunner()
-    result = runner.invoke(list_nodes, ["--interface-type", "tcp", "--address", "test.local"])
+    result = runner.invoke(
+        list_nodes, ["--interface-type", "tcp", "--address", "test.local"]
+    )
 
     assert result.exit_code == 0
     mock_lister_class.assert_called_once_with(

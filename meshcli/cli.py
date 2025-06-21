@@ -23,10 +23,12 @@ def hello(name):
 
 @click.command()
 @click.option("--address", help="Device address (serial port, IP, or BLE MAC/name)")
-@click.option("--interface-type", default="auto", help="Interface type: serial, tcp, ble, or auto")
+@click.option(
+    "--interface-type", default="auto", help="Interface type: serial, tcp, ble, or auto"
+)
 def some_command(address, interface_type):
     """Example command using the new connection logic."""
-    iface = connect(address=address, interface_type=interface_type)
+    connect(address=address, interface_type=interface_type)
     # ... use iface as needed ...
 
 

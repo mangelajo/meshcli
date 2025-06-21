@@ -23,7 +23,9 @@ class NearbyNodeDiscoverer:
 
     def connect(self):
         """Connect to the Meshtastic device using the unified connect function."""
-        self.interface = connect(address=self.device_path, interface_type=self.interface_type)
+        self.interface = connect(
+            address=self.device_path, interface_type=self.interface_type
+        )
         if self.interface is None:
             click.echo("Failed to connect", err=True)
             return False
@@ -42,7 +44,11 @@ class NearbyNodeDiscoverer:
 
         # Pretty print the packet details only in debug mode
         if self.debug:
-            self.console.print("\n┌─ [bold blue]📦 Received Traceroute Packet[/bold blue] " + "─" * 40 + "┐")
+            self.console.print(
+                "\n┌─ [bold blue]📦 Received Traceroute Packet[/bold blue] "
+                + "─" * 40
+                + "┐"
+            )
             packet_details = self.format_packet_details(packet)
             for detail in packet_details:
                 self.console.print(f"│ {detail}")
@@ -73,24 +79,28 @@ class NearbyNodeDiscoverer:
                 rssi = "Forwarded"
 
             # Format display name with known node info
-            display_name = self.format_node_display(sender_id, getattr(self, 'known_nodes', {}))
-            
+            display_name = self.format_node_display(
+                sender_id, getattr(self, "known_nodes", {})
+            )
+
             # Format relay node display
             relay_display = ""
             if rnode is not None:
                 relay_hex = f"______{rnode:02x}"
                 relay_display = f" via relay 0x{relay_hex}"
-                
+
                 # Find candidate nodes
                 candidates = self.find_relay_candidates(rnode)
                 if candidates:
-                    candidate_names = [cand['name'] for cand in candidates]
+                    candidate_names = [cand["name"] for cand in candidates]
                     relay_display += f" (candidates: {', '.join(candidate_names)})"
-            
+
             click.echo(f"📡 Nearby node discovered: {display_name}{relay_display}")
             if snr != "Unknown":
                 if snr_towards is not None:
-                    click.echo(f"   Signal: SNR={snr}dB, RSSI={rssi}dBm, SNR_towards={snr_towards}dB")
+                    click.echo(
+                        f"   Signal: SNR={snr}dB, RSSI={rssi}dBm, SNR_towards={snr_towards}dB"
+                    )
                 else:
                     click.echo(f"   Signal: SNR={snr}dB, RSSI={rssi}dBm")
 
@@ -113,16 +123,16 @@ class NearbyNodeDiscoverer:
             for node_num, node in self.interface.nodesByNum.items():
                 if node_num == self.interface.localNode.nodeNum:
                     continue  # Skip ourselves
-                
+
                 user = node.get("user", {})
                 node_id = user.get("id", f"!{node_num:08x}")
                 long_name = user.get("longName", "")
                 short_name = user.get("shortName", "")
-                
+
                 known_nodes[node_id] = {
                     "long_name": long_name,
                     "short_name": short_name,
-                    "node_num": node_num
+                    "node_num": node_num,
                 }
         return known_nodes
 
@@ -132,86 +142,99 @@ class NearbyNodeDiscoverer:
             node_info = known_nodes[node_id]
             short = node_info["short_name"]
             long_name = node_info["long_name"]
-            
+
             if short and long_name:
                 return f"[{short}] {long_name}"
             elif long_name:
                 return long_name
             elif short:
                 return f"[{short}]"
-        
+
         return node_id
 
     def format_packet_details(self, packet):
         """Format packet details in a nice, readable way"""
         details = []
-        
+
         # Get known nodes for name lookup
-        known_nodes = getattr(self, 'known_nodes', {})
-        
+        known_nodes = getattr(self, "known_nodes", {})
+
         # Basic packet info
-        details.append(f"[bold cyan]Packet ID:[/bold cyan] {packet.get('id', 'Unknown')}")
-        
+        details.append(
+            f"[bold cyan]Packet ID:[/bold cyan] {packet.get('id', 'Unknown')}"
+        )
+
         # Format From field with name if known
-        from_id = packet.get('fromId', 'Unknown')
-        from_num = packet.get('from', 'Unknown')
+        from_id = packet.get("fromId", "Unknown")
+        from_num = packet.get("from", "Unknown")
         from_display = f"{from_id}"
-        if from_id != 'Unknown' and from_id in known_nodes:
+        if from_id != "Unknown" and from_id in known_nodes:
             from_name = self.format_node_display(from_id, known_nodes)
             from_display = f"{from_id} ({from_name})"
-        elif from_num != 'Unknown':
+        elif from_num != "Unknown":
             from_display = f"{from_id} (num: {from_num})"
         details.append(f"[bold cyan]From:[/bold cyan] {from_display}")
-        
+
         # Format To field with name if known
-        to_id = packet.get('toId', 'Unknown')
-        to_num = packet.get('to', 'Unknown')
+        to_id = packet.get("toId", "Unknown")
+        to_num = packet.get("to", "Unknown")
         to_display = f"{to_id}"
-        if to_id != 'Unknown' and to_id in known_nodes:
+        if to_id != "Unknown" and to_id in known_nodes:
             to_name = self.format_node_display(to_id, known_nodes)
             to_display = f"{to_id} ({to_name})"
-        elif to_num != 'Unknown':
+        elif to_num != "Unknown":
             to_display = f"{to_id} (num: {to_num})"
         details.append(f"[bold cyan]To:[/bold cyan] {to_display}")
-        
+
         # Signal info
-        rx_snr = packet.get('rxSnr', 'Unknown')
-        rx_rssi = packet.get('rxRssi', 'Unknown')
-        details.append(f"[bold green]Signal:[/bold green] SNR={rx_snr}dB, RSSI={rx_rssi}dBm")
-        
+        rx_snr = packet.get("rxSnr", "Unknown")
+        rx_rssi = packet.get("rxRssi", "Unknown")
+        details.append(
+            f"[bold green]Signal:[/bold green] SNR={rx_snr}dB, RSSI={rx_rssi}dBm"
+        )
+
         # Hop info with enhanced relay node display
-        hop_limit = packet.get('hopLimit', 'Unknown')
-        hop_start = packet.get('hopStart', 'Unknown')
-        relay_node = packet.get('relayNode', 'Unknown')
-        
+        hop_limit = packet.get("hopLimit", "Unknown")
+        hop_start = packet.get("hopStart", "Unknown")
+        relay_node = packet.get("relayNode", "Unknown")
+
         relay_display = relay_node
-        if relay_node != 'Unknown' and isinstance(relay_node, int):
+        if relay_node != "Unknown" and isinstance(relay_node, int):
             relay_hex = f"______{relay_node:02x}"
             relay_display = f"0x{relay_hex}"
-            
+
             # Find candidate nodes based on last hex digits
             candidates = self.find_relay_candidates(relay_node)
             if candidates:
-                candidate_names = [self.format_node_display(cand['id'], getattr(self, 'known_nodes', {})) for cand in candidates]
+                candidate_names = [
+                    self.format_node_display(
+                        cand["id"], getattr(self, "known_nodes", {})
+                    )
+                    for cand in candidates
+                ]
                 relay_display += f" - Candidates: {', '.join(candidate_names)}"
-        
-        details.append(f"[bold yellow]Hops:[/bold yellow] Limit={hop_limit}, Start={hop_start}, Relay={relay_display}")
-        
+
+        details.append(
+            f"[bold yellow]Hops:[/bold yellow] Limit={hop_limit}, Start={hop_start}, Relay={relay_display}"
+        )
+
         # Decoded info
-        decoded = packet.get('decoded', {})
+        decoded = packet.get("decoded", {})
         if decoded:
-            portnum = decoded.get('portnum', 'Unknown')
-            request_id = decoded.get('requestId', 'Unknown')
-            bitfield = decoded.get('bitfield', 'Unknown')
-            details.append(f"[bold magenta]Decoded:[/bold magenta] Port={portnum}, RequestID={request_id}, Bitfield={bitfield}")
-            
+            portnum = decoded.get("portnum", "Unknown")
+            request_id = decoded.get("requestId", "Unknown")
+            bitfield = decoded.get("bitfield", "Unknown")
+            details.append(
+                f"[bold magenta]Decoded:[/bold magenta] Port={portnum}, RequestID={request_id}, Bitfield={bitfield}"
+            )
+
             # Traceroute specific info
-            traceroute = decoded.get('traceroute', {})
+            traceroute = decoded.get("traceroute", {})
             if traceroute:
                 details.append("[bold blue]Traceroute Data:[/bold blue]")
-                
+
                 # Route information
-                route = traceroute.get('route', [])
+                route = traceroute.get("route", [])
                 if route:
                     route_parts = []
                     for node in route:
@@ -223,10 +246,10 @@ class NearbyNodeDiscoverer:
                             route_parts.append(node_id)
                     route_str = " → ".join(route_parts)
                     details.append(f"  [blue]Route:[/blue] {route_str}")
-                
+
                 # SNR towards information
-                snr_towards = traceroute.get('snrTowards', [])
-                route = traceroute.get('route', [])
+                snr_towards = traceroute.get("snrTowards", [])
+                route = traceroute.get("route", [])
                 if snr_towards:
                     snr_towards_parts = []
                     for i, snr in enumerate(snr_towards):
@@ -235,16 +258,20 @@ class NearbyNodeDiscoverer:
                         if i < len(route):
                             node_id = f"!{route[i]:08x}"
                             if node_id in known_nodes:
-                                node_name = self.format_node_display(node_id, known_nodes)
+                                node_name = self.format_node_display(
+                                    node_id, known_nodes
+                                )
                                 snr_towards_parts.append(f"{snr_db} ({node_name})")
                             else:
                                 snr_towards_parts.append(f"{snr_db} ({node_id})")
                         else:
                             snr_towards_parts.append(snr_db)
-                    details.append(f"  [blue]SNR Towards:[/blue] {' → '.join(snr_towards_parts)}")
-                
+                    details.append(
+                        f"  [blue]SNR Towards:[/blue] {' → '.join(snr_towards_parts)}"
+                    )
+
                 # SNR back information
-                snr_back = traceroute.get('snrBack', [])
+                snr_back = traceroute.get("snrBack", [])
                 if snr_back:
                     snr_back_parts = []
                     for i, snr in enumerate(snr_back):
@@ -255,7 +282,9 @@ class NearbyNodeDiscoverer:
                             if route_idx >= 0:
                                 node_id = f"!{route[route_idx]:08x}"
                                 if node_id in known_nodes:
-                                    node_name = self.format_node_display(node_id, known_nodes)
+                                    node_name = self.format_node_display(
+                                        node_id, known_nodes
+                                    )
                                     snr_back_parts.append(f"{snr_db} ({node_name})")
                                 else:
                                     snr_back_parts.append(f"{snr_db} ({node_id})")
@@ -263,45 +292,52 @@ class NearbyNodeDiscoverer:
                                 snr_back_parts.append(snr_db)
                         else:
                             snr_back_parts.append(snr_db)
-                    details.append(f"  [blue]SNR Back:[/blue] {' → '.join(snr_back_parts)}")
-        
+                    details.append(
+                        f"  [blue]SNR Back:[/blue] {' → '.join(snr_back_parts)}"
+                    )
+
         # Timing info
-        rx_time = packet.get('rxTime', 'Unknown')
-        if rx_time != 'Unknown':
+        rx_time = packet.get("rxTime", "Unknown")
+        if rx_time != "Unknown":
             import datetime
+
             try:
                 dt = datetime.datetime.fromtimestamp(rx_time)
-                details.append(f"[bold white]Received:[/bold white] {dt.strftime('%Y-%m-%d %H:%M:%S')}")
+                details.append(
+                    f"[bold white]Received:[/bold white] {dt.strftime('%Y-%m-%d %H:%M:%S')}"
+                )
             except (ValueError, OSError, OverflowError):
                 details.append(f"[bold white]RX Time:[/bold white] {rx_time}")
-        
+
         return details
 
     def find_relay_candidates(self, relay_node_last_byte):
         """Find known nodes at 0 hops that could match the relay node based on last hex digits"""
         candidates = []
-        known_nodes = getattr(self, 'known_nodes', {})
-        
+        known_nodes = getattr(self, "known_nodes", {})
+
         # Only consider nodes that are at 0 hops (directly reachable)
         if self.interface and self.interface.nodesByNum:
             for node_num, node in self.interface.nodesByNum.items():
                 # Skip ourselves
                 if node_num == self.interface.localNode.nodeNum:
                     continue
-                
+
                 # Only consider nodes at 0 hops
-                if node.get('hopsAway', float('inf')) == 0:
+                if node.get("hopsAway", float("inf")) == 0:
                     # Check if the last byte matches
                     if (node_num & 0xFF) == relay_node_last_byte:
                         user = node.get("user", {})
                         node_id = user.get("id", f"!{node_num:08x}")
-                        
-                        candidates.append({
-                            'id': node_id,
-                            'node_num': node_num,
-                            'name': self.format_node_display(node_id, known_nodes)
-                        })
-        
+
+                        candidates.append(
+                            {
+                                "id": node_id,
+                                "node_num": node_num,
+                                "name": self.format_node_display(node_id, known_nodes),
+                            }
+                        )
+
         return candidates
 
     def discover_nearby_nodes(self, duration=60):
@@ -312,7 +348,7 @@ class NearbyNodeDiscoverer:
         try:
             # Get known nodes first
             known_nodes = self.get_known_nodes()
-            
+
             # Store known_nodes for use in on_traceroute_response
             self.known_nodes = known_nodes
 
@@ -350,7 +386,10 @@ class NearbyNodeDiscoverer:
             nearby_count = len(self.nearby_nodes)
             if self.nearby_nodes:
                 # Create a table for the results
-                table = Table(title= f"\n📊 Discovery complete! Found {nearby_count} " "nearby nodes:")
+                table = Table(
+                    title=f"\n📊 Discovery complete! Found {nearby_count} "
+                    "nearby nodes:"
+                )
                 table.add_column("#", style="cyan", no_wrap=True)
                 table.add_column("Node ID", style="magenta")
                 table.add_column("Short Name", style="bright_magenta")
@@ -360,8 +399,8 @@ class NearbyNodeDiscoverer:
                 table.add_column("SNR Towards (dB)", style="bright_blue")
 
                 for i, node in enumerate(self.nearby_nodes, 1):
-                    node_id = node['id']
-                    
+                    node_id = node["id"]
+
                     # Get node info from known nodes
                     short_name = ""
                     long_name = ""
@@ -369,19 +408,17 @@ class NearbyNodeDiscoverer:
                         node_info = known_nodes[node_id]
                         short_name = node_info["short_name"]
                         long_name = node_info["long_name"]
-                    
+
                     snr = str(node["snr"]) if node["snr"] != "Unknown" else "Unknown"
                     rssi = str(node["rssi"]) if node["rssi"] != "Unknown" else "Unknown"
-                    snr_towards = str(node.get("snr_towards", "")) if node.get("snr_towards") is not None else ""
-                    
+                    snr_towards = (
+                        str(node.get("snr_towards", ""))
+                        if node.get("snr_towards") is not None
+                        else ""
+                    )
+
                     table.add_row(
-                        str(i),
-                        node_id,
-                        short_name,
-                        long_name,
-                        snr,
-                        rssi,
-                        snr_towards
+                        str(i), node_id, short_name, long_name, snr, rssi, snr_towards
                     )
 
                 self.console.print(table)
@@ -416,7 +453,9 @@ class NearbyNodeDiscoverer:
 @click.option("--debug", is_flag=True, help="Enable debug mode to show packet details")
 def discover(address, interface_type, duration, debug):
     """Discover nearby Meshtastic nodes using 0-hop traceroute."""
-    discoverer = NearbyNodeDiscoverer(interface_type=interface_type, device_path=address, debug=debug)
+    discoverer = NearbyNodeDiscoverer(
+        interface_type=interface_type, device_path=address, debug=debug
+    )
 
     click.echo("🌐 Meshtastic Nearby Node Discoverer")
     click.echo("=" * 40)

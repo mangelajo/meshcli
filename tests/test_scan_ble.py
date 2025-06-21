@@ -22,11 +22,11 @@ def test_scan_ble_success(mock_scan):
     mock_device1 = Mock()
     mock_device1.name = "Meshtastic Device 1"
     mock_device1.address = "AA:BB:CC:DD:EE:FF"
-    
+
     mock_device2 = Mock()
     mock_device2.name = "Meshtastic Device 2"
     mock_device2.address = "11:22:33:44:55:66"
-    
+
     mock_scan.return_value = [mock_device1, mock_device2]
 
     runner = CliRunner()

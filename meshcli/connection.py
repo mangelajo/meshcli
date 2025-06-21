@@ -6,6 +6,7 @@ import meshtastic.serial_interface
 import meshtastic.tcp_interface
 import meshtastic.ble_interface
 
+
 def detect_interface_type(address: str) -> str:
     """Auto-detect interface type based on address format."""
     if not address or address == "any":
@@ -13,7 +14,11 @@ def detect_interface_type(address: str) -> str:
     if address.startswith("/dev/"):
         return "serial"
     # IP addresses (IPv4 and IPv6)
-    if re.match(r"^\d{1,3}(\.\d{1,3}){3}$", address) or ":" in address and "::" in address:
+    if (
+        re.match(r"^\d{1,3}(\.\d{1,3}){3}$", address)
+        or ":" in address
+        and "::" in address
+    ):
         return "tcp"
     # Hostnames (contain dots or are common hostnames)
     if "." in address or address in ["localhost", "meshtastic.local"]:
@@ -24,6 +29,7 @@ def detect_interface_type(address: str) -> str:
     # Default to BLE for other formats (device names, UUIDs, etc.)
     return "ble"
 
+
 def connect(address: str = None, interface_type: str = "auto", **kwargs):
     """Create and return the appropriate interface based on type or auto-detect."""
     if interface_type == "auto":
@@ -31,7 +37,9 @@ def connect(address: str = None, interface_type: str = "auto", **kwargs):
     try:
         if interface_type == "serial":
             if address:
-                return meshtastic.serial_interface.SerialInterface(devPath=address, **kwargs)
+                return meshtastic.serial_interface.SerialInterface(
+                    devPath=address, **kwargs
+                )
             else:
                 return meshtastic.serial_interface.SerialInterface(**kwargs)
         elif interface_type == "tcp":
@@ -48,17 +56,18 @@ def connect(address: str = None, interface_type: str = "auto", **kwargs):
         click.echo(f"Failed to connect: {e}", err=True)
         return None
 
+
 def address_options(func):
     """Decorator to add address and interface-type options to a click command."""
     func = click.option(
         "--interface-type",
         default="auto",
         show_default=True,
-        help="Interface type: serial, tcp, ble, or auto"
+        help="Interface type: serial, tcp, ble, or auto",
     )(func)
     func = click.option(
         "--address",
         default=None,
-        help="Device address (serial port, IP, or BLE MAC/name)"
+        help="Device address (serial port, IP, or BLE MAC/name)",
     )(func)
     return func
