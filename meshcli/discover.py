@@ -78,7 +78,10 @@ class NearbyNodeDiscoverer:
                     # Convert raw values to dB by dividing by 4.0, skip first 0.0
                     snr_towards = snr_towards_raw[-1] / 4.0
 
-            click.echo(f"📡 Nearby node discovered: {sender_id} {rnode}")
+            # Format display name with known node info
+            display_name = self.format_node_display(sender_id, getattr(self, 'known_nodes', {}))
+            
+            click.echo(f"📡 Nearby node discovered: {display_name} {rnode}")
             if snr != "Unknown":
                 if snr_towards is not None:
                     click.echo(f"   Signal: SNR={snr}dB, RSSI={rssi}dBm, SNR_towards={snr_towards}dB")
@@ -141,6 +144,9 @@ class NearbyNodeDiscoverer:
         try:
             # Get known nodes first
             known_nodes = self.get_known_nodes()
+            
+            # Store known_nodes for use in on_traceroute_response
+            self.known_nodes = known_nodes
 
             # Subscribe to traceroute responses
             pub.subscribe(self.on_traceroute_response, "meshtastic.receive.traceroute")
