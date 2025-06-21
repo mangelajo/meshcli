@@ -15,10 +15,13 @@ test: ## Run tests
 	uv run pytest
 
 lint: ## Run linting checks
-	uv run flake8 meshcli tests
+	uv run ruff check meshcli tests
 
 format: ## Format code with black
 	uv run black meshcli tests
+
+fix: ## Fix linting issues automatically
+	uv run ruff check --fix meshcli tests
 
 format-check: ## Check code formatting without making changes
 	uv run black --check meshcli tests
