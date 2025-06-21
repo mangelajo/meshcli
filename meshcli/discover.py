@@ -65,9 +65,20 @@ class NearbyNodeDiscoverer:
             rssi = packet.get("rxRssi", "Unknown")
             rnode = packet.get("relay_node")
 
+            # Extract snrTowards values from traceroute data
+            snr_towards = None
+            traceroute = packet.get("decoded", {}).get("traceroute", {})
+            if traceroute and "snrTowards" in traceroute:
+                snr_towards_raw = traceroute["snrTowards"]
+                if snr_towards_raw:
+                    # Convert raw values to dB by dividing by 4.0
+                    snr_towards = [val / 4.0 for val in snr_towards_raw]
+
             click.echo(f"📡 Nearby node discovered: {sender_id} {rnode}")
             if snr != "Unknown":
                 click.echo(f"   Signal: SNR={snr}dB, RSSI={rssi}dBm")
+            if snr_towards:
+                click.echo(f"   SNR towards: {snr_towards}")
 
             self.nearby_nodes.append(
                 {
@@ -75,6 +86,7 @@ class NearbyNodeDiscoverer:
                     "from_num": packet.get("from"),
                     "snr": snr,
                     "rssi": rssi,
+                    "snr_towards": snr_towards,
                     "timestamp": time.time(),
                     "packet": packet,
                 }
@@ -169,6 +181,9 @@ class NearbyNodeDiscoverer:
                         snr = node["snr"]
                         rssi = node["rssi"]
                         click.echo(f"     Signal: SNR={snr}dB, " f"RSSI={rssi}dBm")
+                    if node.get("snr_towards"):
+                        snr_towards = node["snr_towards"]
+                        click.echo(f"     SNR towards: {snr_towards}")
             else:
                 click.echo("  No nearby nodes detected or they didn't " "respond.")
 
