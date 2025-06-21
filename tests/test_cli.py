@@ -15,22 +15,6 @@ def test_main_help():
     assert "A CLI tool for mesh operations" in result.output
 
 
-def test_hello_command():
-    """Test the hello command."""
-    runner = CliRunner()
-    result = runner.invoke(main, ["hello"])
-    assert result.exit_code == 0
-    assert "Hello World!" in result.output
-
-
-def test_hello_command_with_name():
-    """Test the hello command with a custom name."""
-    runner = CliRunner()
-    result = runner.invoke(main, ["hello", "--name", "Alice"])
-    assert result.exit_code == 0
-    assert "Hello Alice!" in result.output
-
-
 def test_discover_command_help():
     """Test that the discover command shows help."""
     runner = CliRunner()

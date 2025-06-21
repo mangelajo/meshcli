@@ -14,13 +14,6 @@ def main():
     pass
 
 
-@main.command()
-@click.option("--name", default="World", help="Name to greet.")
-def hello(name):
-    """Simple program that greets NAME."""
-    click.echo(f"Hello {name}!")
-
-
 @click.command()
 @click.option("--address", help="Device address (serial port, IP, or BLE MAC/name)")
 @click.option(

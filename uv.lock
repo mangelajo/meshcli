@@ -528,7 +528,6 @@ wheels = [
 
 [[package]]
 name = "meshctl"
-version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "click", version = "8.1.8", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
@@ -536,7 +535,6 @@ dependencies = [
     { name = "meshtastic", version = "2.3.14", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
     { name = "meshtastic", version = "2.6.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9'" },
     { name = "rich" },
-    { name = "ruff" },
 ]
 
 [package.dev-dependencies]
@@ -548,6 +546,7 @@ dev = [
     { name = "flake8", version = "7.3.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9'" },
     { name = "pytest", version = "8.3.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
     { name = "pytest", version = "8.4.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9'" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -555,7 +554,6 @@ requires-dist = [
     { name = "click", specifier = ">=8.0.0" },
     { name = "meshtastic", specifier = ">=2.3.14" },
     { name = "rich", specifier = ">=13.0.0" },
-    { name = "ruff", specifier = ">=0.12.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -563,6 +561,7 @@ dev = [
     { name = "black", specifier = ">=22.0.0" },
     { name = "flake8", specifier = ">=4.0.0" },
     { name = "pytest", specifier = ">=7.0.0" },
+    { name = "ruff", specifier = ">=0.12.0" },
 ]
 
 [[package]]
