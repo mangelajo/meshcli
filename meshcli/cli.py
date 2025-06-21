@@ -67,57 +67,7 @@ class NearbyNodeDiscoverer:
                 'packet': packet
             })
     
-    def simple_discovery(self):
-        """Send a simple 0-hop traceroute to discover nearby nodes"""
-        if not self.connect():
-            return False
-            
-        try:
-            click.echo("🔍 Sending 0-hop traceroute to broadcast address...")
-            click.echo("   Using TRACEROUTE_APP protocol")
-            
-            # Create RouteDiscovery message
-            route_discovery = mesh_pb2.RouteDiscovery()
-            
-            packet = self.interface.sendData(
-                data=route_discovery,
-                destinationId=BROADCAST_ADDR,
-                portNum=portnums_pb2.PortNum.TRACEROUTE_APP,
-                wantResponse=True,
-                hopLimit=0  # Only nearby nodes
-            )
-            
-            click.echo(f"   Packet ID: {packet.id}")
-            click.echo("   Nearby nodes should respond automatically")
-            return True
-            
-        except Exception as e:
-            click.echo(f"Failed to send discovery: {e}", err=True)
-            return False
-        finally:
-            self.interface.close()
-    
-    def builtin_discovery(self, timeout=10):
-        """Use the built-in pingNearbyNodes method"""
-        if not self.connect():
-            return []
-            
-        try:
-            click.echo(f"🔍 Using built-in nearby node discovery...")
-            click.echo(f"   Timeout: {timeout} seconds")
-            
-            # Use the new built-in method
-            nearby_nodes = self.interface.pingNearbyNodes(timeout=timeout)
-            
-            return nearby_nodes
-            
-        except Exception as e:
-            click.echo(f"Error during built-in discovery: {e}", err=True)
-            return []
-        finally:
-            self.interface.close()
-    
-    def interactive_discovery(self, duration=60):
+    def discover_nearby_nodes(self, duration=60):
         """Send 0-hop traceroute and listen for responses"""
         if not self.connect():
             return []
@@ -244,16 +194,12 @@ def hello(name):
 
 
 @main.command()
-@click.option("--mode", type=click.Choice(['simple', 'builtin', 'interactive']), 
-              default='builtin', help='Discovery mode')
 @click.option("--duration", type=int, default=15, 
-              help='How long to listen for responses in interactive mode (seconds)')
-@click.option("--timeout", type=int, default=10,
-              help='Timeout for built-in discovery method (seconds)')
+              help='How long to listen for responses (seconds)')
 @click.option("--interface", type=click.Choice(['serial', 'tcp']), default='serial',
               help='Interface type to use')
 @click.option("--device", type=str, help='Device path for serial or hostname for TCP')
-def discover(mode, duration, timeout, interface, device):
+def discover(duration, interface, device):
     """Discover nearby Meshtastic nodes using 0-hop traceroute."""
     discoverer = NearbyNodeDiscoverer(interface_type=interface, device_path=device)
     
@@ -262,30 +208,12 @@ def discover(mode, duration, timeout, interface, device):
     click.echo("Using 0-hop traceroute to broadcast address")
     click.echo()
     
-    if mode == 'simple':
-        click.echo("Mode: Simple discovery (send only)")
-        success = discoverer.simple_discovery()
-        if success:
-            click.echo("✅ Discovery packet sent successfully")
-        else:
-            click.echo("❌ Failed to send discovery packet")
-            sys.exit(1)
-            
-    elif mode == 'builtin':
-        click.echo(f"Mode: Built-in discovery (timeout: {timeout}s)")
-        nearby_nodes = discoverer.builtin_discovery(timeout=timeout)
-        if nearby_nodes:
-            click.echo("✅ Discovery completed successfully")
-        else:
-            click.echo("ℹ️  No nearby nodes found")
-            
-    elif mode == 'interactive':
-        click.echo(f"Mode: Interactive discovery (listen for {duration}s)")
-        nearby_nodes = discoverer.interactive_discovery(duration=duration)
-        if nearby_nodes:
-            click.echo("✅ Discovery completed successfully")
-        else:
-            click.echo("ℹ️  No nearby nodes found")
+    click.echo(f"Listening for responses for {duration} seconds...")
+    nearby_nodes = discoverer.discover_nearby_nodes(duration=duration)
+    if nearby_nodes:
+        click.echo("✅ Discovery completed successfully")
+    else:
+        click.echo("ℹ️  No nearby nodes found")
 
 
 @main.command("list-nodes")
