@@ -70,15 +70,16 @@ class NearbyNodeDiscoverer:
             traceroute = packet.get("decoded", {}).get("traceroute", {})
             if traceroute and "snrTowards" in traceroute:
                 snr_towards_raw = traceroute["snrTowards"]
-                if snr_towards_raw:
-                    # Convert raw values to dB by dividing by 4.0
-                    snr_towards = [val / 4.0 for val in snr_towards_raw]
+                if snr_towards_raw and len(snr_towards_raw) > 1:
+                    # Convert raw values to dB by dividing by 4.0, skip first 0.0
+                    snr_towards = snr_towards_raw[-1] / 4.0
 
             click.echo(f"📡 Nearby node discovered: {sender_id} {rnode}")
             if snr != "Unknown":
-                click.echo(f"   Signal: SNR={snr}dB, RSSI={rssi}dBm")
-            if snr_towards:
-                click.echo(f"   SNR towards: {snr_towards}")
+                if snr_towards is not None:
+                    click.echo(f"   Signal: SNR={snr}dB, RSSI={rssi}dBm, SNR_towards={snr_towards}dB")
+                else:
+                    click.echo(f"   Signal: SNR={snr}dB, RSSI={rssi}dBm")
 
             self.nearby_nodes.append(
                 {
@@ -180,10 +181,11 @@ class NearbyNodeDiscoverer:
                     if node["snr"] != "Unknown":
                         snr = node["snr"]
                         rssi = node["rssi"]
-                        click.echo(f"     Signal: SNR={snr}dB, " f"RSSI={rssi}dBm")
-                    if node.get("snr_towards"):
-                        snr_towards = node["snr_towards"]
-                        click.echo(f"     SNR towards: {snr_towards}")
+                        snr_towards = node.get("snr_towards")
+                        if snr_towards is not None:
+                            click.echo(f"     Signal: SNR={snr}dB, RSSI={rssi}dBm, SNR_towards={snr_towards}dB")
+                        else:
+                            click.echo(f"     Signal: SNR={snr}dB, " f"RSSI={rssi}dBm")
             else:
                 click.echo("  No nearby nodes detected or they didn't " "respond.")
 
