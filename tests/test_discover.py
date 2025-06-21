@@ -122,6 +122,6 @@ def test_discover_command_execution(mock_discoverer_class):
 
     assert result.exit_code == 0
     mock_discoverer_class.assert_called_once_with(
-        interface_type="auto", device_path=None, debug=False
+        interface_type="auto", device_path=None, debug=False, test_run_id=None, csv_file=None
     )
     mock_discoverer.discover_nearby_nodes.assert_called_once_with(duration=1)
