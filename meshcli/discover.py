@@ -47,8 +47,10 @@ class NearbyNodeDiscoverer:
 
         # Pretty print the packet details only in debug mode
         if self.debug:
-            self.console.print("\n┌─ [bold blue]📦 Received packet[/bold blue] " + "─" * 50 + "┐")
-            pprint(packet, console=self.console)
+            self.console.print("\n┌─ [bold blue]📦 Received Traceroute Packet[/bold blue] " + "─" * 40 + "┐")
+            packet_details = self.format_packet_details(packet)
+            for detail in packet_details:
+                self.console.print(f"│ {detail}")
             self.console.print("└" + "─" * 65 + "┘")
 
         if packet.get("decoded", {}).get("portnum") == "TRACEROUTE_APP":
@@ -123,6 +125,69 @@ class NearbyNodeDiscoverer:
                 return f"[{short}]"
         
         return node_id
+
+    def format_packet_details(self, packet):
+        """Format packet details in a nice, readable way"""
+        details = []
+        
+        # Basic packet info
+        details.append(f"[bold cyan]Packet ID:[/bold cyan] {packet.get('id', 'Unknown')}")
+        details.append(f"[bold cyan]From:[/bold cyan] {packet.get('fromId', 'Unknown')} (num: {packet.get('from', 'Unknown')})")
+        details.append(f"[bold cyan]To:[/bold cyan] {packet.get('toId', 'Unknown')} (num: {packet.get('to', 'Unknown')})")
+        
+        # Signal info
+        rx_snr = packet.get('rxSnr', 'Unknown')
+        rx_rssi = packet.get('rxRssi', 'Unknown')
+        details.append(f"[bold green]Signal:[/bold green] SNR={rx_snr}dB, RSSI={rx_rssi}dBm")
+        
+        # Hop info
+        hop_limit = packet.get('hopLimit', 'Unknown')
+        hop_start = packet.get('hopStart', 'Unknown')
+        relay_node = packet.get('relayNode', 'Unknown')
+        details.append(f"[bold yellow]Hops:[/bold yellow] Limit={hop_limit}, Start={hop_start}, Relay={relay_node}")
+        
+        # Decoded info
+        decoded = packet.get('decoded', {})
+        if decoded:
+            portnum = decoded.get('portnum', 'Unknown')
+            request_id = decoded.get('requestId', 'Unknown')
+            bitfield = decoded.get('bitfield', 'Unknown')
+            details.append(f"[bold magenta]Decoded:[/bold magenta] Port={portnum}, RequestID={request_id}, Bitfield={bitfield}")
+            
+            # Traceroute specific info
+            traceroute = decoded.get('traceroute', {})
+            if traceroute:
+                details.append("[bold blue]Traceroute Data:[/bold blue]")
+                
+                # Route information
+                route = traceroute.get('route', [])
+                if route:
+                    route_str = " → ".join([f"!{node:08x}" for node in route])
+                    details.append(f"  [blue]Route:[/blue] {route_str}")
+                
+                # SNR towards information
+                snr_towards = traceroute.get('snrTowards', [])
+                if snr_towards:
+                    snr_towards_db = [f"{snr/4.0:.1f}dB" for snr in snr_towards]
+                    details.append(f"  [blue]SNR Towards:[/blue] {' → '.join(snr_towards_db)}")
+                
+                # SNR back information
+                snr_back = traceroute.get('snrBack', [])
+                if snr_back:
+                    snr_back_db = [f"{snr/4.0:.1f}dB" for snr in snr_back]
+                    details.append(f"  [blue]SNR Back:[/blue] {' → '.join(snr_back_db)}")
+        
+        # Timing info
+        rx_time = packet.get('rxTime', 'Unknown')
+        if rx_time != 'Unknown':
+            import datetime
+            try:
+                dt = datetime.datetime.fromtimestamp(rx_time)
+                details.append(f"[bold white]Received:[/bold white] {dt.strftime('%Y-%m-%d %H:%M:%S')}")
+            except:
+                details.append(f"[bold white]RX Time:[/bold white] {rx_time}")
+        
+        return details
 
     def discover_nearby_nodes(self, duration=60):
         """Send 0-hop traceroute and listen for responses"""
