@@ -10,6 +10,8 @@ from meshtastic import BROADCAST_ADDR
 from meshtastic.protobuf import portnums_pb2, mesh_pb2
 from pubsub import pub
 
+from .list_nodes import NodeLister
+
 
 class NearbyNodeDiscoverer:
     def __init__(self, interface_type="serial", device_path=None):
@@ -73,12 +75,61 @@ class NearbyNodeDiscoverer:
                 }
             )
 
+    def get_known_nodes(self):
+        """Get known nodes from the node database"""
+        known_nodes = {}
+        if self.interface and self.interface.nodesByNum:
+            for node_num, node in self.interface.nodesByNum.items():
+                if node_num == self.interface.localNode.nodeNum:
+                    continue  # Skip ourselves
+                
+                user = node.get("user", {})
+                node_id = user.get("id", f"!{node_num:08x}")
+                long_name = user.get("longName", "")
+                short_name = user.get("shortName", "")
+                
+                known_nodes[node_id] = {
+                    "long_name": long_name,
+                    "short_name": short_name,
+                    "node_num": node_num
+                }
+        return known_nodes
+
+    def format_node_display(self, node_id, known_nodes):
+        """Format node display with [Short] LongName if known, otherwise just ID"""
+        if node_id in known_nodes:
+            node_info = known_nodes[node_id]
+            short = node_info["short_name"]
+            long_name = node_info["long_name"]
+            
+            if short and long_name:
+                return f"[{short}] {long_name}"
+            elif long_name:
+                return long_name
+            elif short:
+                return f"[{short}]"
+        
+        return node_id
+
     def discover_nearby_nodes(self, duration=60):
         """Send 0-hop traceroute and listen for responses"""
         if not self.connect():
             return []
 
         try:
+            # Get known nodes first
+            known_nodes = self.get_known_nodes()
+            
+            # Show known nodes
+            click.echo("📋 Currently known nodes:")
+            if known_nodes:
+                for i, (node_id, info) in enumerate(known_nodes.items(), 1):
+                    display_name = self.format_node_display(node_id, known_nodes)
+                    click.echo(f"  {i}. {display_name}")
+            else:
+                click.echo("  No known nodes in database")
+            click.echo()
+
             # Subscribe to traceroute responses
             pub.subscribe(self.on_traceroute_response, "meshtastic.receive.traceroute")
 
@@ -116,7 +167,9 @@ class NearbyNodeDiscoverer:
             )
             if self.nearby_nodes:
                 for i, node in enumerate(self.nearby_nodes, 1):
-                    click.echo(f"  {i}. {node['id']}")
+                    node_id = node['id']
+                    display_name = self.format_node_display(node_id, known_nodes)
+                    click.echo(f"  {i}. {display_name}")
                     if node["snr"] != "Unknown":
                         snr = node["snr"]
                         rssi = node["rssi"]
