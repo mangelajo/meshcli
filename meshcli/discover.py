@@ -573,20 +573,61 @@ class NearbyNodeDiscoverer:
 @click.option("--debug", is_flag=True, help="Enable debug mode to show packet details")
 @click.option("--id", help="Test run ID to include in results table")
 @click.option("--append-to-csv", help="Append results to CSV file (creates file with headers if it doesn't exist)")
-def discover(address, interface_type, duration, debug, id, append_to_csv):
+@click.option("--repeat", type=int, default=1, help="Number of times to repeat the discovery")
+@click.option("--repeat-time", type=int, default=300, help="Time interval between repeats in seconds (includes test runtime)")
+def discover(address, interface_type, duration, debug, id, append_to_csv, repeat, repeat_time):
     """Discover nearby Meshtastic nodes using 0-hop traceroute."""
-    discoverer = NearbyNodeDiscoverer(
-        interface_type=interface_type, device_path=address, debug=debug, test_run_id=id, csv_file=append_to_csv
-    )
-
+    
     click.echo("🌐 Meshtastic Nearby Node Discoverer")
     click.echo("=" * 40)
     click.echo("Using 0-hop traceroute to broadcast address")
+    if repeat > 1:
+        click.echo(f"Repeating {repeat} times with {repeat_time} second intervals")
     click.echo()
 
-    click.echo(f"Listening for responses for {duration} seconds...")
-    nearby_nodes = discoverer.discover_nearby_nodes(duration=duration)
-    if nearby_nodes:
-        click.echo("✅ Discovery completed successfully")
-    else:
-        click.echo("ℹ️  No nearby nodes found")
+    all_nodes = []
+    
+    for run_number in range(1, repeat + 1):
+        if repeat > 1:
+            click.echo(f"\n🔄 Run {run_number} of {repeat}")
+            click.echo("-" * 30)
+        
+        # Create a new discoverer instance for each run to ensure clean state
+        current_id = id
+        if repeat > 1 and id:
+            current_id = f"{id}-run{run_number}"
+        elif repeat > 1:
+            current_id = f"run{run_number}"
+            
+        discoverer = NearbyNodeDiscoverer(
+            interface_type=interface_type, 
+            device_path=address, 
+            debug=debug, 
+            test_run_id=current_id, 
+            csv_file=append_to_csv
+        )
+
+        click.echo(f"Listening for responses for {duration} seconds...")
+        run_start_time = time.time()
+        nearby_nodes = discoverer.discover_nearby_nodes(duration=duration)
+        run_duration = time.time() - run_start_time
+        
+        all_nodes.extend(nearby_nodes)
+        
+        if nearby_nodes:
+            click.echo("✅ Discovery run completed successfully")
+        else:
+            click.echo("ℹ️  No nearby nodes found in this run")
+        
+        # Wait for the remaining time if there are more runs
+        if run_number < repeat:
+            remaining_wait = repeat_time - run_duration
+            if remaining_wait > 0:
+                click.echo(f"⏳ Waiting {remaining_wait:.1f} seconds until next run...")
+                time.sleep(remaining_wait)
+            else:
+                click.echo("⚠️  Run took longer than repeat interval, starting next run immediately")
+    
+    # Final summary
+    if repeat > 1:
+        click.echo(f"\n📊 Final Summary: {len(all_nodes)} total nodes discovered across {repeat} runs")
