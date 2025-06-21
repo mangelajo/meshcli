@@ -142,10 +142,33 @@ class NearbyNodeDiscoverer:
         """Format packet details in a nice, readable way"""
         details = []
         
+        # Get known nodes for name lookup
+        known_nodes = getattr(self, 'known_nodes', {})
+        
         # Basic packet info
         details.append(f"[bold cyan]Packet ID:[/bold cyan] {packet.get('id', 'Unknown')}")
-        details.append(f"[bold cyan]From:[/bold cyan] {packet.get('fromId', 'Unknown')} (num: {packet.get('from', 'Unknown')})")
-        details.append(f"[bold cyan]To:[/bold cyan] {packet.get('toId', 'Unknown')} (num: {packet.get('to', 'Unknown')})")
+        
+        # Format From field with name if known
+        from_id = packet.get('fromId', 'Unknown')
+        from_num = packet.get('from', 'Unknown')
+        from_display = f"{from_id}"
+        if from_id != 'Unknown' and from_id in known_nodes:
+            from_name = self.format_node_display(from_id, known_nodes)
+            from_display = f"{from_id} ({from_name})"
+        elif from_num != 'Unknown':
+            from_display = f"{from_id} (num: {from_num})"
+        details.append(f"[bold cyan]From:[/bold cyan] {from_display}")
+        
+        # Format To field with name if known
+        to_id = packet.get('toId', 'Unknown')
+        to_num = packet.get('to', 'Unknown')
+        to_display = f"{to_id}"
+        if to_id != 'Unknown' and to_id in known_nodes:
+            to_name = self.format_node_display(to_id, known_nodes)
+            to_display = f"{to_id} ({to_name})"
+        elif to_num != 'Unknown':
+            to_display = f"{to_id} (num: {to_num})"
+        details.append(f"[bold cyan]To:[/bold cyan] {to_display}")
         
         # Signal info
         rx_snr = packet.get('rxSnr', 'Unknown')
