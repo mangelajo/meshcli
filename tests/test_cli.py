@@ -1,6 +1,5 @@
 """Tests for the CLI module."""
 
-import pytest
 from click.testing import CliRunner
 from meshcli.cli import main
 
