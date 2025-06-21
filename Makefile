@@ -20,8 +20,9 @@ lint: ## Run linting checks
 format: ## Format code with black
 	uv run black meshcli tests
 
-fix: ## Fix linting issues automatically
+fix: ## Fix linting issues automatically and format code
 	uv run ruff check --fix meshcli tests
+	uv run black meshcli tests
 
 format-check: ## Check code formatting without making changes
 	uv run black --check meshcli tests
