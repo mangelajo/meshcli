@@ -9,6 +9,8 @@ import meshtastic.tcp_interface
 from meshtastic import BROADCAST_ADDR
 from meshtastic.protobuf import portnums_pb2, mesh_pb2
 from pubsub import pub
+from rich.console import Console
+from rich.pretty import pprint
 
 from .list_nodes import NodeLister
 
@@ -20,6 +22,7 @@ class NearbyNodeDiscoverer:
         self.discovery_active = False
         self.interface_type = interface_type
         self.device_path = device_path
+        self.console = Console()
 
     def connect(self):
         """Connect to the Meshtastic device"""
@@ -52,7 +55,9 @@ class NearbyNodeDiscoverer:
         if not self.discovery_active:
             return
 
-        click.echo(packet)
+        # Pretty print the packet details
+        self.console.print("\n[bold blue]📦 Received packet:[/bold blue]")
+        pprint(packet, console=self.console)
 
         if packet.get("decoded", {}).get("portnum") == "TRACEROUTE_APP":
             sender_id = packet.get("fromId", f"!{packet.get('from', 0):08x}")
