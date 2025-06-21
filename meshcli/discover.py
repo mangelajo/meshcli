@@ -96,14 +96,23 @@ class NearbyNodeDiscoverer:
                     candidate_names = [cand["name"] for cand in candidates]
                     relay_display += f" (candidates: {', '.join(candidate_names)})"
 
-            click.echo(f"📡 Nearby node discovered: {display_name}{relay_display}")
+            # Create a beautiful frame for the discovery output
+            self.console.print(
+                "\n┌─ [bold green]📡 Nearby Node Discovered[/bold green] "
+                + "─" * 30
+                + "┐"
+            )
+            self.console.print(f"│ [bold cyan]Node:[/bold cyan] {display_name}{relay_display}")
+            
             if snr != "Unknown":
                 if snr_towards is not None:
-                    click.echo(
-                        f"   Signal: SNR={snr}dB, RSSI={rssi}dBm, SNR_towards={snr_towards}dB"
+                    self.console.print(
+                        f"│ [bold green]Signal:[/bold green] SNR={snr}dB, RSSI={rssi}dBm, SNR_towards={snr_towards}dB"
                     )
                 else:
-                    click.echo(f"   Signal: SNR={snr}dB, RSSI={rssi}dBm")
+                    self.console.print(f"│ [bold green]Signal:[/bold green] SNR={snr}dB, RSSI={rssi}dBm")
+            
+            self.console.print("└" + "─" * 65 + "┘")
 
             self.nearby_nodes.append(
                 {
