@@ -181,14 +181,23 @@ class NearbyNodeDiscoverer:
                 # Create a table for the results
                 table = Table(title="Discovered Nearby Nodes")
                 table.add_column("#", style="cyan", no_wrap=True)
-                table.add_column("Node", style="magenta")
+                table.add_column("Node ID", style="magenta")
+                table.add_column("Short Name", style="bright_magenta")
+                table.add_column("Long Name", style="bright_cyan")
                 table.add_column("SNR (dB)", style="green")
                 table.add_column("RSSI (dBm)", style="yellow")
                 table.add_column("SNR Towards (dB)", style="blue")
 
                 for i, node in enumerate(self.nearby_nodes, 1):
                     node_id = node['id']
-                    display_name = self.format_node_display(node_id, known_nodes)
+                    
+                    # Get node info from known nodes
+                    short_name = ""
+                    long_name = ""
+                    if node_id in known_nodes:
+                        node_info = known_nodes[node_id]
+                        short_name = node_info["short_name"]
+                        long_name = node_info["long_name"]
                     
                     snr = str(node["snr"]) if node["snr"] != "Unknown" else "Unknown"
                     rssi = str(node["rssi"]) if node["rssi"] != "Unknown" else "Unknown"
@@ -196,7 +205,9 @@ class NearbyNodeDiscoverer:
                     
                     table.add_row(
                         str(i),
-                        display_name,
+                        node_id,
+                        short_name,
+                        long_name,
                         snr,
                         rssi,
                         snr_towards
