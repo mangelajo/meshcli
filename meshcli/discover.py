@@ -231,15 +231,44 @@ class NearbyNodeDiscoverer:
                 
                 # SNR towards information
                 snr_towards = traceroute.get('snrTowards', [])
+                route = traceroute.get('route', [])
                 if snr_towards:
-                    snr_towards_db = [f"{snr/4.0:.1f}dB" for snr in snr_towards]
-                    details.append(f"  [blue]SNR Towards:[/blue] {' → '.join(snr_towards_db)}")
+                    snr_towards_parts = []
+                    for i, snr in enumerate(snr_towards):
+                        snr_db = f"{snr/4.0:.1f}dB"
+                        # Try to match with route nodes if available
+                        if i < len(route):
+                            node_id = f"!{route[i]:08x}"
+                            if node_id in known_nodes:
+                                node_name = self.format_node_display(node_id, known_nodes)
+                                snr_towards_parts.append(f"{snr_db} ({node_name})")
+                            else:
+                                snr_towards_parts.append(f"{snr_db} ({node_id})")
+                        else:
+                            snr_towards_parts.append(snr_db)
+                    details.append(f"  [blue]SNR Towards:[/blue] {' → '.join(snr_towards_parts)}")
                 
                 # SNR back information
                 snr_back = traceroute.get('snrBack', [])
                 if snr_back:
-                    snr_back_db = [f"{snr/4.0:.1f}dB" for snr in snr_back]
-                    details.append(f"  [blue]SNR Back:[/blue] {' → '.join(snr_back_db)}")
+                    snr_back_parts = []
+                    for i, snr in enumerate(snr_back):
+                        snr_db = f"{snr/4.0:.1f}dB"
+                        # Try to match with route nodes if available (reverse order for back)
+                        if i < len(route):
+                            route_idx = len(route) - 1 - i
+                            if route_idx >= 0:
+                                node_id = f"!{route[route_idx]:08x}"
+                                if node_id in known_nodes:
+                                    node_name = self.format_node_display(node_id, known_nodes)
+                                    snr_back_parts.append(f"{snr_db} ({node_name})")
+                                else:
+                                    snr_back_parts.append(f"{snr_db} ({node_id})")
+                            else:
+                                snr_back_parts.append(snr_db)
+                        else:
+                            snr_back_parts.append(snr_db)
+                    details.append(f"  [blue]SNR Back:[/blue] {' → '.join(snr_back_parts)}")
         
         # Timing info
         rx_time = packet.get('rxTime', 'Unknown')
