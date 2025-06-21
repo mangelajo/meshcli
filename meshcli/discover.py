@@ -10,13 +10,26 @@ from meshtastic.protobuf import portnums_pb2, mesh_pb2
 from pubsub import pub
 from rich.console import Console
 from rich.panel import Panel
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeElapsedColumn
+from rich.progress import (
+    Progress,
+    SpinnerColumn,
+    TextColumn,
+    BarColumn,
+    TimeElapsedColumn,
+)
 from rich.table import Table
 from .connection import address_options, connect
 
 
 class NearbyNodeDiscoverer:
-    def __init__(self, interface_type="auto", device_path=None, debug=False, test_run_id=None, csv_file=None):
+    def __init__(
+        self,
+        interface_type="auto",
+        device_path=None,
+        debug=False,
+        test_run_id=None,
+        csv_file=None,
+    ):
         self.interface_type = interface_type
         self.device_path = device_path
         self.interface = None
@@ -52,12 +65,12 @@ class NearbyNodeDiscoverer:
         if self.debug:
             packet_details = self.format_packet_details(packet)
             content = "\n".join(packet_details)
-            
+
             panel = Panel(
                 content,
                 title="[bold blue]📦 Received Traceroute Packet[/bold blue]",
                 border_style="blue",
-                padding=(0, 1)
+                padding=(0, 1),
             )
             self.console.print(panel)
 
@@ -104,19 +117,21 @@ class NearbyNodeDiscoverer:
 
             # Create content for the panel
             content = f"[bold cyan]Node:[/bold cyan] {display_name}{relay_display}\n"
-            
+
             if snr != "Unknown":
                 if snr_towards is not None:
                     content += f"[bold green]Signal:[/bold green] SNR={snr}dB, RSSI={rssi}dBm, SNR_towards={snr_towards}dB"
                 else:
-                    content += f"[bold green]Signal:[/bold green] SNR={snr}dB, RSSI={rssi}dBm"
-            
+                    content += (
+                        f"[bold green]Signal:[/bold green] SNR={snr}dB, RSSI={rssi}dBm"
+                    )
+
             # Create a beautiful panel for the discovery output
             panel = Panel(
                 content,
                 title="[bold green]📡 Nearby Node Discovered[/bold green]",
                 border_style="green",
-                padding=(0, 1)
+                padding=(0, 1),
             )
             self.console.print(panel)
 
@@ -359,30 +374,45 @@ class NearbyNodeDiscoverer:
     def append_to_csv(self, nodes, known_nodes):
         """Append discovery results to CSV file"""
         import datetime
-        
+
         # Check if file exists to determine if we need headers
         file_exists = os.path.exists(self.csv_file)
-        
+
         try:
-            with open(self.csv_file, 'a', newline='', encoding='utf-8') as csvfile:
+            with open(self.csv_file, "a", newline="", encoding="utf-8") as csvfile:
                 # Define fieldnames based on whether test_run_id is used
                 if self.test_run_id:
-                    fieldnames = ['Timestamp', 'Test Run ID', 'Node ID', 'Short Name', 'Long Name', 
-                                'SNR (dB)', 'RSSI (dBm)', 'SNR Towards (dB)']
+                    fieldnames = [
+                        "Timestamp",
+                        "Test Run ID",
+                        "Node ID",
+                        "Short Name",
+                        "Long Name",
+                        "SNR (dB)",
+                        "RSSI (dBm)",
+                        "SNR Towards (dB)",
+                    ]
                 else:
-                    fieldnames = ['Timestamp', 'Node ID', 'Short Name', 'Long Name', 
-                                'SNR (dB)', 'RSSI (dBm)', 'SNR Towards (dB)']
-                
+                    fieldnames = [
+                        "Timestamp",
+                        "Node ID",
+                        "Short Name",
+                        "Long Name",
+                        "SNR (dB)",
+                        "RSSI (dBm)",
+                        "SNR Towards (dB)",
+                    ]
+
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-                
+
                 # Write header if file is new
                 if not file_exists:
                     writer.writeheader()
-                
+
                 # Write data rows
                 for i, node in enumerate(nodes, 1):
                     node_id = node["id"]
-                    
+
                     # Get node info from known nodes
                     short_name = ""
                     long_name = ""
@@ -390,7 +420,7 @@ class NearbyNodeDiscoverer:
                         node_info = known_nodes[node_id]
                         short_name = node_info["short_name"]
                         long_name = node_info["long_name"]
-                    
+
                     snr = str(node["snr"]) if node["snr"] != "Unknown" else "Unknown"
                     rssi = str(node["rssi"]) if node["rssi"] != "Unknown" else "Unknown"
                     snr_towards = (
@@ -398,37 +428,39 @@ class NearbyNodeDiscoverer:
                         if node.get("snr_towards") is not None
                         else ""
                     )
-                    
+
                     # Format timestamp
-                    timestamp = datetime.datetime.fromtimestamp(node["timestamp"]).strftime('%Y-%m-%d %H:%M:%S')
-                    
+                    timestamp = datetime.datetime.fromtimestamp(
+                        node["timestamp"]
+                    ).strftime("%Y-%m-%d %H:%M:%S")
+
                     # Create row data
                     if self.test_run_id:
                         row = {
-                            'Timestamp': timestamp,
-                            'Test Run ID': self.test_run_id,
-                            'Node ID': node_id,
-                            'Short Name': short_name,
-                            'Long Name': long_name,
-                            'SNR (dB)': snr,
-                            'RSSI (dBm)': rssi,
-                            'SNR Towards (dB)': snr_towards
+                            "Timestamp": timestamp,
+                            "Test Run ID": self.test_run_id,
+                            "Node ID": node_id,
+                            "Short Name": short_name,
+                            "Long Name": long_name,
+                            "SNR (dB)": snr,
+                            "RSSI (dBm)": rssi,
+                            "SNR Towards (dB)": snr_towards,
                         }
                     else:
                         row = {
-                            'Timestamp': timestamp,
-                            'Node ID': node_id,
-                            'Short Name': short_name,
-                            'Long Name': long_name,
-                            'SNR (dB)': snr,
-                            'RSSI (dBm)': rssi,
-                            'SNR Towards (dB)': snr_towards
+                            "Timestamp": timestamp,
+                            "Node ID": node_id,
+                            "Short Name": short_name,
+                            "Long Name": long_name,
+                            "SNR (dB)": snr,
+                            "RSSI (dBm)": rssi,
+                            "SNR Towards (dB)": snr_towards,
                         }
-                    
+
                     writer.writerow(row)
-            
+
             click.echo(f"📄 Results appended to {self.csv_file}")
-            
+
         except Exception as e:
             click.echo(f"❌ Error writing to CSV file: {e}", err=True)
 
@@ -475,10 +507,10 @@ class NearbyNodeDiscoverer:
                 TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
                 TimeElapsedColumn(),
                 console=self.console,
-                transient=True
+                transient=True,
             ) as progress:
                 task = progress.add_task("Discovering nodes...", total=duration)
-                
+
                 start_time = time.time()
                 while time.time() - start_time < duration:
                     elapsed = time.time() - start_time
@@ -526,19 +558,35 @@ class NearbyNodeDiscoverer:
 
                     # Format timestamp
                     import datetime
-                    timestamp = datetime.datetime.fromtimestamp(node["timestamp"]).strftime('%H:%M:%S')
+
+                    timestamp = datetime.datetime.fromtimestamp(
+                        node["timestamp"]
+                    ).strftime("%H:%M:%S")
 
                     if self.test_run_id:
                         table.add_row(
-                            timestamp, self.test_run_id, node_id, short_name, long_name, snr, rssi, snr_towards
+                            timestamp,
+                            self.test_run_id,
+                            node_id,
+                            short_name,
+                            long_name,
+                            snr,
+                            rssi,
+                            snr_towards,
                         )
                     else:
                         table.add_row(
-                            timestamp, node_id, short_name, long_name, snr, rssi, snr_towards
+                            timestamp,
+                            node_id,
+                            short_name,
+                            long_name,
+                            snr,
+                            rssi,
+                            snr_towards,
                         )
 
                 self.console.print(table)
-                
+
                 # Append to CSV if requested
                 if self.csv_file:
                     self.append_to_csv(self.nearby_nodes, known_nodes)
@@ -572,12 +620,24 @@ class NearbyNodeDiscoverer:
 )
 @click.option("--debug", is_flag=True, help="Enable debug mode to show packet details")
 @click.option("--id", help="Test run ID to include in results table")
-@click.option("--append-to-csv", help="Append results to CSV file (creates file with headers if it doesn't exist)")
-@click.option("--repeat", type=int, default=1, help="Number of times to repeat the discovery")
-@click.option("--repeat-time", type=int, default=300, help="Time interval between repeats in seconds (includes test runtime)")
-def discover(address, interface_type, duration, debug, id, append_to_csv, repeat, repeat_time):
+@click.option(
+    "--append-to-csv",
+    help="Append results to CSV file (creates file with headers if it doesn't exist)",
+)
+@click.option(
+    "--repeat", type=int, default=1, help="Number of times to repeat the discovery"
+)
+@click.option(
+    "--repeat-time",
+    type=int,
+    default=300,
+    help="Time interval between repeats in seconds (includes test runtime)",
+)
+def discover(
+    address, interface_type, duration, debug, id, append_to_csv, repeat, repeat_time
+):
     """Discover nearby Meshtastic nodes using 0-hop traceroute."""
-    
+
     click.echo("🌐 Meshtastic Nearby Node Discoverer")
     click.echo("=" * 40)
     click.echo("Using 0-hop traceroute to broadcast address")
@@ -586,33 +646,33 @@ def discover(address, interface_type, duration, debug, id, append_to_csv, repeat
     click.echo()
 
     all_nodes = []
-    
+
     for run_number in range(1, repeat + 1):
         if repeat > 1:
             click.echo(f"\n🔄 Run {run_number} of {repeat}")
             click.echo("-" * 30)
-        
+
         # Create a new discoverer instance for each run to ensure clean state
         discoverer = NearbyNodeDiscoverer(
-            interface_type=interface_type, 
-            device_path=address, 
-            debug=debug, 
-            test_run_id=id, 
-            csv_file=append_to_csv
+            interface_type=interface_type,
+            device_path=address,
+            debug=debug,
+            test_run_id=id,
+            csv_file=append_to_csv,
         )
 
         click.echo(f"Listening for responses for {duration} seconds...")
         run_start_time = time.time()
         nearby_nodes = discoverer.discover_nearby_nodes(duration=duration)
         run_duration = time.time() - run_start_time
-        
+
         all_nodes.extend(nearby_nodes)
-        
+
         if nearby_nodes:
             click.echo("✅ Discovery run completed successfully")
         else:
             click.echo("ℹ️  No nearby nodes found in this run")
-        
+
         # Wait for the remaining time if there are more runs
         if run_number < repeat:
             remaining_wait = repeat_time - run_duration
@@ -620,8 +680,12 @@ def discover(address, interface_type, duration, debug, id, append_to_csv, repeat
                 click.echo(f"⏳ Waiting {remaining_wait:.1f} seconds until next run...")
                 time.sleep(remaining_wait)
             else:
-                click.echo("⚠️  Run took longer than repeat interval, starting next run immediately")
-    
+                click.echo(
+                    "⚠️  Run took longer than repeat interval, starting next run immediately"
+                )
+
     # Final summary
     if repeat > 1:
-        click.echo(f"\n📊 Final Summary: {len(all_nodes)} total nodes discovered across {repeat} runs")
+        click.echo(
+            f"\n📊 Final Summary: {len(all_nodes)} total nodes discovered across {repeat} runs"
+        )
