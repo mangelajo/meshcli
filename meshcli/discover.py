@@ -1,5 +1,7 @@
 """Discovery functionality for meshcli."""
 
+import time
+
 import click
 import meshtastic
 import meshtastic.serial_interface
@@ -7,7 +9,6 @@ import meshtastic.tcp_interface
 from meshtastic import BROADCAST_ADDR
 from meshtastic.protobuf import portnums_pb2, mesh_pb2
 from pubsub import pub
-import time
 
 
 class NearbyNodeDiscoverer:

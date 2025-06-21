@@ -1,10 +1,11 @@
 """List nodes functionality for meshcli."""
 
+import datetime
+
 import click
 import meshtastic
 import meshtastic.serial_interface
 import meshtastic.tcp_interface
-import datetime
 
 
 class NodeLister:
