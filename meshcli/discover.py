@@ -1,5 +1,7 @@
 """Discovery functionality for meshcli."""
 
+import csv
+import os
 import time
 
 import click
@@ -13,7 +15,7 @@ from .connection import address_options, connect
 
 
 class NearbyNodeDiscoverer:
-    def __init__(self, interface_type="auto", device_path=None, debug=False, test_run_id=None):
+    def __init__(self, interface_type="auto", device_path=None, debug=False, test_run_id=None, csv_file=None):
         self.interface_type = interface_type
         self.device_path = device_path
         self.interface = None
@@ -22,6 +24,7 @@ class NearbyNodeDiscoverer:
         self.discovery_active = False
         self.console = Console()
         self.test_run_id = test_run_id
+        self.csv_file = csv_file
 
     def connect(self):
         """Connect to the Meshtastic device using the unified connect function."""
@@ -352,6 +355,84 @@ class NearbyNodeDiscoverer:
 
         return candidates
 
+    def append_to_csv(self, nodes, known_nodes):
+        """Append discovery results to CSV file"""
+        import datetime
+        
+        # Check if file exists to determine if we need headers
+        file_exists = os.path.exists(self.csv_file)
+        
+        try:
+            with open(self.csv_file, 'a', newline='', encoding='utf-8') as csvfile:
+                # Define fieldnames based on whether test_run_id is used
+                if self.test_run_id:
+                    fieldnames = ['#', 'Test Run ID', 'Node ID', 'Short Name', 'Long Name', 
+                                'SNR (dB)', 'RSSI (dBm)', 'SNR Towards (dB)', 'Timestamp']
+                else:
+                    fieldnames = ['#', 'Node ID', 'Short Name', 'Long Name', 
+                                'SNR (dB)', 'RSSI (dBm)', 'SNR Towards (dB)', 'Timestamp']
+                
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                
+                # Write header if file is new
+                if not file_exists:
+                    writer.writeheader()
+                
+                # Write data rows
+                for i, node in enumerate(nodes, 1):
+                    node_id = node["id"]
+                    
+                    # Get node info from known nodes
+                    short_name = ""
+                    long_name = ""
+                    if node_id in known_nodes:
+                        node_info = known_nodes[node_id]
+                        short_name = node_info["short_name"]
+                        long_name = node_info["long_name"]
+                    
+                    snr = str(node["snr"]) if node["snr"] != "Unknown" else "Unknown"
+                    rssi = str(node["rssi"]) if node["rssi"] != "Unknown" else "Unknown"
+                    snr_towards = (
+                        str(node.get("snr_towards", ""))
+                        if node.get("snr_towards") is not None
+                        else ""
+                    )
+                    
+                    # Format timestamp
+                    timestamp = datetime.datetime.fromtimestamp(node["timestamp"]).strftime('%H:%M:%S')
+                    
+                    # Create row data
+                    if self.test_run_id:
+                        row = {
+                            '#': str(i),
+                            'Test Run ID': self.test_run_id,
+                            'Node ID': node_id,
+                            'Short Name': short_name,
+                            'Long Name': long_name,
+                            'SNR (dB)': snr,
+                            'RSSI (dBm)': rssi,
+                            'SNR Towards (dB)': snr_towards,
+                            'Timestamp': timestamp
+                        }
+                    else:
+                        row = {
+                            '#': str(i),
+                            'Node ID': node_id,
+                            'Short Name': short_name,
+                            'Long Name': long_name,
+                            'SNR (dB)': snr,
+                            'RSSI (dBm)': rssi,
+                            'SNR Towards (dB)': snr_towards,
+                            'Timestamp': timestamp
+                        }
+                    
+                    writer.writerow(row)
+            
+            click.echo(f"📄 Results appended to {self.csv_file}")
+            
+        except Exception as e:
+            click.echo(f"❌ Error writing to CSV file: {e}", err=True)
+
     def discover_nearby_nodes(self, duration=60):
         """Send 0-hop traceroute and listen for responses"""
         if not self.connect():
@@ -446,6 +527,10 @@ class NearbyNodeDiscoverer:
                         )
 
                 self.console.print(table)
+                
+                # Append to CSV if requested
+                if self.csv_file:
+                    self.append_to_csv(self.nearby_nodes, known_nodes)
             else:
                 click.echo("  No nearby nodes detected or they didn't " "respond.")
 
@@ -476,10 +561,11 @@ class NearbyNodeDiscoverer:
 )
 @click.option("--debug", is_flag=True, help="Enable debug mode to show packet details")
 @click.option("--id", help="Test run ID to include in results table")
-def discover(address, interface_type, duration, debug, id):
+@click.option("--append-to-csv", help="Append results to CSV file (creates file with headers if it doesn't exist)")
+def discover(address, interface_type, duration, debug, id, append_to_csv):
     """Discover nearby Meshtastic nodes using 0-hop traceroute."""
     discoverer = NearbyNodeDiscoverer(
-        interface_type=interface_type, device_path=address, debug=debug, test_run_id=id
+        interface_type=interface_type, device_path=address, debug=debug, test_run_id=id, csv_file=append_to_csv
     )
 
     click.echo("🌐 Meshtastic Nearby Node Discoverer")
