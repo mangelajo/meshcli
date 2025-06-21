@@ -33,7 +33,7 @@ class NearbyNodeDiscoverer:
                 raise ValueError(f"Unsupported interface type: {self.interface_type}")
                 
             self.interface.waitForConfig()
-            click.echo(f"Connected to Meshtastic device")
+            click.echo("Connected to Meshtastic device")
             return True
             
         except Exception as e:
@@ -78,7 +78,7 @@ class NearbyNodeDiscoverer:
             self.discovery_active = True
             self.nearby_nodes = []
             
-            click.echo(f"🔍 Starting interactive nearby node discovery...")
+            click.echo("🔍 Starting interactive nearby node discovery...")
             click.echo(f"   Listening for responses for {duration} seconds...")
             click.echo("   Using 0-hop traceroute to broadcast address")
             

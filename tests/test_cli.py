@@ -1,6 +1,6 @@
 """Tests for the CLI module."""
 
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 from click.testing import CliRunner
 

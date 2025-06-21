@@ -28,7 +28,7 @@ class NodeLister:
                 raise ValueError(f"Unsupported interface type: {self.interface_type}")
                 
             self.interface.waitForConfig()
-            click.echo(f"Connected to Meshtastic device")
+            click.echo("Connected to Meshtastic device")
             return True
             
         except Exception as e:
