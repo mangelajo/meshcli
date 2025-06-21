@@ -179,7 +179,7 @@ class NearbyNodeDiscoverer:
                 table.add_column("Long Name", style="bright_cyan")
                 table.add_column("SNR (dB)", style="green")
                 table.add_column("RSSI (dBm)", style="yellow")
-                table.add_column("SNR Towards (dB)", style="blue")
+                table.add_column("SNR Towards (dB)", style="bright_blue")
 
                 for i, node in enumerate(self.nearby_nodes, 1):
                     node_id = node['id']
