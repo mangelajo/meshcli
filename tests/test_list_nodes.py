@@ -28,10 +28,10 @@ class TestNodeLister:
         """Test successful serial connection."""
         mock_interface = Mock()
         mock_serial.return_value = mock_interface
-        
+
         lister = NodeLister()
         result = lister.connect()
-        
+
         assert result is True
         mock_serial.assert_called_once()
         mock_interface.waitForConfig.assert_called_once()
@@ -40,10 +40,10 @@ class TestNodeLister:
     def test_connect_serial_failure(self, mock_serial):
         """Test failed serial connection."""
         mock_serial.side_effect = Exception("Connection failed")
-        
+
         lister = NodeLister()
         result = lister.connect()
-        
+
         assert result is False
 
     @patch('meshcli.list_nodes.meshtastic.tcp_interface.TCPInterface')
@@ -51,10 +51,10 @@ class TestNodeLister:
         """Test successful TCP connection."""
         mock_interface = Mock()
         mock_tcp.return_value = mock_interface
-        
+
         lister = NodeLister(interface_type='tcp', device_path='test.local')
         result = lister.connect()
-        
+
         assert result is True
         mock_tcp.assert_called_once_with(hostname='test.local')
         mock_interface.waitForConfig.assert_called_once()
@@ -63,7 +63,7 @@ class TestNodeLister:
         """Test connection with invalid interface type."""
         lister = NodeLister(interface_type='invalid')
         result = lister.connect()
-        
+
         assert result is False
 
     @patch('meshcli.list_nodes.meshtastic.serial_interface.SerialInterface')
@@ -72,12 +72,12 @@ class TestNodeLister:
         mock_interface = Mock()
         mock_interface.nodesByNum = {}
         mock_serial.return_value = mock_interface
-        
+
         lister = NodeLister()
-        
+
         with patch('meshcli.list_nodes.click.echo') as mock_echo:
             lister.show_known_nodes()
-        
+
         # Should indicate empty database
         mock_echo.assert_any_call("  Node database is empty")
 
@@ -97,12 +97,12 @@ class TestNodeLister:
             }
         }
         mock_serial.return_value = mock_interface
-        
+
         lister = NodeLister()
-        
+
         with patch('meshcli.list_nodes.click.echo') as mock_echo:
             lister.show_known_nodes()
-        
+
         # Should show the node information
         mock_echo.assert_any_call("  1. !22222222 (Test Node)")
 
@@ -123,10 +123,14 @@ def test_list_nodes_command_execution(mock_lister_class):
     """Test list-nodes command execution."""
     mock_lister = Mock()
     mock_lister_class.return_value = mock_lister
-    
+
     runner = CliRunner()
-    result = runner.invoke(list_nodes, ['--interface', 'tcp', '--device', 'test.local'])
-    
+    result = runner.invoke(list_nodes, ['--interface', 'tcp',
+                                       '--device', 'test.local'])
+
     assert result.exit_code == 0
-    mock_lister_class.assert_called_once_with(interface_type='tcp', device_path='test.local')
+    mock_lister_class.assert_called_once_with(
+        interface_type='tcp',
+        device_path='test.local'
+    )
     mock_lister.show_known_nodes.assert_called_once()

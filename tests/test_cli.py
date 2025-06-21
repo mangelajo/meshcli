@@ -51,10 +51,10 @@ def test_list_nodes_command_help():
 def test_discover_command_connection_failure(mock_serial):
     """Test discover command handles connection failure gracefully."""
     mock_serial.side_effect = Exception("Connection failed")
-    
+
     runner = CliRunner()
     result = runner.invoke(main, ["discover", "--duration", "1"])
-    
+
     assert result.exit_code == 0
     assert "Failed to connect" in result.output
 
@@ -63,10 +63,10 @@ def test_discover_command_connection_failure(mock_serial):
 def test_list_nodes_command_connection_failure(mock_serial):
     """Test list-nodes command handles connection failure gracefully."""
     mock_serial.side_effect = Exception("Connection failed")
-    
+
     runner = CliRunner()
     result = runner.invoke(main, ["list-nodes"])
-    
+
     assert result.exit_code == 0
     assert "Failed to connect" in result.output
 
@@ -75,8 +75,9 @@ def test_list_nodes_command_connection_failure(mock_serial):
 def test_discover_command_with_tcp_interface(mock_serial):
     """Test discover command with TCP interface option."""
     runner = CliRunner()
-    result = runner.invoke(main, ["discover", "--interface", "tcp", "--device", "test.local", "--duration", "1"])
-    
+    result = runner.invoke(main, ["discover", "--interface", "tcp",
+                                 "--device", "test.local", "--duration", "1"])
+
     # Should attempt to use TCP interface
     assert result.exit_code == 0
 
@@ -85,7 +86,8 @@ def test_discover_command_with_tcp_interface(mock_serial):
 def test_list_nodes_command_with_tcp_interface(mock_serial):
     """Test list-nodes command with TCP interface option."""
     runner = CliRunner()
-    result = runner.invoke(main, ["list-nodes", "--interface", "tcp", "--device", "test.local"])
-    
+    result = runner.invoke(main, ["list-nodes", "--interface", "tcp",
+                                 "--device", "test.local"])
+
     # Should attempt to use TCP interface
     assert result.exit_code == 0
