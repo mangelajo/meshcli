@@ -119,16 +119,6 @@ class NearbyNodeDiscoverer:
         try:
             # Get known nodes first
             known_nodes = self.get_known_nodes()
-            
-            # Show known nodes
-            click.echo("📋 Currently known nodes:")
-            if known_nodes:
-                for i, (node_id, info) in enumerate(known_nodes.items(), 1):
-                    display_name = self.format_node_display(node_id, known_nodes)
-                    click.echo(f"  {i}. {display_name}")
-            else:
-                click.echo("  No known nodes in database")
-            click.echo()
 
             # Subscribe to traceroute responses
             pub.subscribe(self.on_traceroute_response, "meshtastic.receive.traceroute")
