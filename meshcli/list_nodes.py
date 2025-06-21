@@ -19,6 +19,7 @@ class NodeLister:
         """Connect to the Meshtastic device using the unified connect function."""
         self.interface = connect(address=self.device_path, interface_type=self.interface_type)
         if self.interface is None:
+            click.echo("Failed to connect", err=True)
             return False
         try:
             self.interface.waitForConfig()
