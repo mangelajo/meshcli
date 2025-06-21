@@ -12,7 +12,7 @@ from .connection import address_options, connect
 
 
 class NearbyNodeDiscoverer:
-    def __init__(self, interface_type="auto", device_path=None, debug=False):
+    def __init__(self, interface_type="auto", device_path=None, debug=False, test_run_id=None):
         self.interface_type = interface_type
         self.device_path = device_path
         self.interface = None
@@ -20,6 +20,7 @@ class NearbyNodeDiscoverer:
         self.nearby_nodes = []
         self.discovery_active = False
         self.console = Console()
+        self.test_run_id = test_run_id
 
     def connect(self):
         """Connect to the Meshtastic device using the unified connect function."""
@@ -391,6 +392,8 @@ class NearbyNodeDiscoverer:
                     "nearby nodes:"
                 )
                 table.add_column("#", style="cyan", no_wrap=True)
+                if self.test_run_id:
+                    table.add_column("Test Run ID", style="dim", no_wrap=True)
                 table.add_column("Node ID", style="magenta")
                 table.add_column("Short Name", style="bright_magenta")
                 table.add_column("Long Name", style="bright_cyan")
@@ -417,9 +420,14 @@ class NearbyNodeDiscoverer:
                         else ""
                     )
 
-                    table.add_row(
-                        str(i), node_id, short_name, long_name, snr, rssi, snr_towards
-                    )
+                    if self.test_run_id:
+                        table.add_row(
+                            str(i), self.test_run_id, node_id, short_name, long_name, snr, rssi, snr_towards
+                        )
+                    else:
+                        table.add_row(
+                            str(i), node_id, short_name, long_name, snr, rssi, snr_towards
+                        )
 
                 self.console.print(table)
             else:
@@ -451,10 +459,11 @@ class NearbyNodeDiscoverer:
     help="How long to listen for responses (seconds)",
 )
 @click.option("--debug", is_flag=True, help="Enable debug mode to show packet details")
-def discover(address, interface_type, duration, debug):
+@click.option("--id", help="Test run ID to include in results table")
+def discover(address, interface_type, duration, debug, id):
     """Discover nearby Meshtastic nodes using 0-hop traceroute."""
     discoverer = NearbyNodeDiscoverer(
-        interface_type=interface_type, device_path=address, debug=debug
+        interface_type=interface_type, device_path=address, debug=debug, test_run_id=id
     )
 
     click.echo("🌐 Meshtastic Nearby Node Discoverer")
