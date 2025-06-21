@@ -71,7 +71,19 @@ class NearbyNodeDiscoverer:
             # Format display name with known node info
             display_name = self.format_node_display(sender_id, getattr(self, 'known_nodes', {}))
             
-            click.echo(f"📡 Nearby node discovered: {display_name} {rnode}")
+            # Format relay node display
+            relay_display = ""
+            if rnode is not None:
+                relay_hex = f"______{rnode:02x}"
+                relay_display = f" via relay 0x{relay_hex}"
+                
+                # Find candidate nodes
+                candidates = self.find_relay_candidates(rnode)
+                if candidates:
+                    candidate_names = [cand['name'] for cand in candidates]
+                    relay_display += f" (candidates: {', '.join(candidate_names)})"
+            
+            click.echo(f"📡 Nearby node discovered: {display_name}{relay_display}")
             if snr != "Unknown":
                 if snr_towards is not None:
                     click.echo(f"   Signal: SNR={snr}dB, RSSI={rssi}dBm, SNR_towards={snr_towards}dB")
@@ -140,11 +152,23 @@ class NearbyNodeDiscoverer:
         rx_rssi = packet.get('rxRssi', 'Unknown')
         details.append(f"[bold green]Signal:[/bold green] SNR={rx_snr}dB, RSSI={rx_rssi}dBm")
         
-        # Hop info
+        # Hop info with enhanced relay node display
         hop_limit = packet.get('hopLimit', 'Unknown')
         hop_start = packet.get('hopStart', 'Unknown')
         relay_node = packet.get('relayNode', 'Unknown')
-        details.append(f"[bold yellow]Hops:[/bold yellow] Limit={hop_limit}, Start={hop_start}, Relay={relay_node}")
+        
+        relay_display = relay_node
+        if relay_node != 'Unknown' and isinstance(relay_node, int):
+            relay_hex = f"______{relay_node:02x}"
+            relay_display = f"{relay_node} (0x{relay_hex})"
+            
+            # Find candidate nodes based on last hex digits
+            candidates = self.find_relay_candidates(relay_node)
+            if candidates:
+                candidate_names = [self.format_node_display(cand['id'], getattr(self, 'known_nodes', {})) for cand in candidates]
+                relay_display += f" - Candidates: {', '.join(candidate_names)}"
+        
+        details.append(f"[bold yellow]Hops:[/bold yellow] Limit={hop_limit}, Start={hop_start}, Relay={relay_display}")
         
         # Decoded info
         decoded = packet.get('decoded', {})
@@ -188,6 +212,24 @@ class NearbyNodeDiscoverer:
                 details.append(f"[bold white]RX Time:[/bold white] {rx_time}")
         
         return details
+
+    def find_relay_candidates(self, relay_node_last_byte):
+        """Find known nodes that could match the relay node based on last hex digits"""
+        candidates = []
+        known_nodes = getattr(self, 'known_nodes', {})
+        
+        for node_id, node_info in known_nodes.items():
+            node_num = node_info.get('node_num')
+            if node_num is not None:
+                # Check if the last byte matches
+                if (node_num & 0xFF) == relay_node_last_byte:
+                    candidates.append({
+                        'id': node_id,
+                        'node_num': node_num,
+                        'name': self.format_node_display(node_id, known_nodes)
+                    })
+        
+        return candidates
 
     def discover_nearby_nodes(self, duration=60):
         """Send 0-hop traceroute and listen for responses"""
