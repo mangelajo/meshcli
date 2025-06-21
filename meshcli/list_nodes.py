@@ -6,6 +6,7 @@ import click
 import meshtastic
 import meshtastic.serial_interface
 import meshtastic.tcp_interface
+import meshtastic.ble_interface
 
 
 class NodeLister:
@@ -29,6 +30,13 @@ class NodeLister:
                 self.interface = meshtastic.tcp_interface.TCPInterface(
                     hostname=hostname
                 )
+            elif self.interface_type == "bluetooth":
+                if self.device_path:
+                    self.interface = meshtastic.ble_interface.BLEInterface(
+                        address=self.device_path
+                    )
+                else:
+                    self.interface = meshtastic.ble_interface.BLEInterface()
             else:
                 raise ValueError(f"Unsupported interface type: {self.interface_type}")
 
@@ -102,11 +110,11 @@ class NodeLister:
 @click.command("list-nodes")
 @click.option(
     "--interface",
-    type=click.Choice(["serial", "tcp"]),
+    type=click.Choice(["serial", "tcp", "bluetooth"]),
     default="serial",
     help="Interface type to use",
 )
-@click.option("--device", type=str, help="Device path for serial or hostname for TCP")
+@click.option("--device", type=str, help="Device path for serial, hostname for TCP, or MAC address for Bluetooth")
 def list_nodes(interface, device):
     """Show currently known nodes from the node database."""
     lister = NodeLister(interface_type=interface, device_path=device)

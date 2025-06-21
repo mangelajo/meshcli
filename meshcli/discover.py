@@ -6,6 +6,7 @@ import click
 import meshtastic
 import meshtastic.serial_interface
 import meshtastic.tcp_interface
+import meshtastic.ble_interface
 from meshtastic import BROADCAST_ADDR
 from meshtastic.protobuf import portnums_pb2, mesh_pb2
 from pubsub import pub
@@ -41,6 +42,13 @@ class NearbyNodeDiscoverer:
                 self.interface = meshtastic.tcp_interface.TCPInterface(
                     hostname=hostname
                 )
+            elif self.interface_type == "bluetooth":
+                if self.device_path:
+                    self.interface = meshtastic.ble_interface.BLEInterface(
+                        address=self.device_path
+                    )
+                else:
+                    self.interface = meshtastic.ble_interface.BLEInterface()
             else:
                 raise ValueError(f"Unsupported interface type: {self.interface_type}")
 
@@ -249,11 +257,11 @@ class NearbyNodeDiscoverer:
 )
 @click.option(
     "--interface",
-    type=click.Choice(["serial", "tcp"]),
+    type=click.Choice(["serial", "tcp", "bluetooth"]),
     default="serial",
     help="Interface type to use",
 )
-@click.option("--device", type=str, help="Device path for serial or hostname for TCP")
+@click.option("--device", type=str, help="Device path for serial, hostname for TCP, or MAC address for Bluetooth")
 @click.option("--debug", is_flag=True, help="Enable debug mode to show packet details")
 def discover(duration, interface, device, debug):
     """Discover nearby Meshtastic nodes using 0-hop traceroute."""
