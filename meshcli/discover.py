@@ -209,7 +209,15 @@ class NearbyNodeDiscoverer:
                 # Route information
                 route = traceroute.get('route', [])
                 if route:
-                    route_str = " → ".join([f"!{node:08x}" for node in route])
+                    route_parts = []
+                    for node in route:
+                        node_id = f"!{node:08x}"
+                        if node_id in known_nodes:
+                            node_name = self.format_node_display(node_id, known_nodes)
+                            route_parts.append(f"{node_id} ({node_name})")
+                        else:
+                            route_parts.append(node_id)
+                    route_str = " → ".join(route_parts)
                     details.append(f"  [blue]Route:[/blue] {route_str}")
                 
                 # SNR towards information
