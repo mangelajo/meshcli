@@ -366,11 +366,11 @@ class NearbyNodeDiscoverer:
             with open(self.csv_file, 'a', newline='', encoding='utf-8') as csvfile:
                 # Define fieldnames based on whether test_run_id is used
                 if self.test_run_id:
-                    fieldnames = ['#', 'Test Run ID', 'Node ID', 'Short Name', 'Long Name', 
-                                'SNR (dB)', 'RSSI (dBm)', 'SNR Towards (dB)', 'Timestamp']
+                    fieldnames = ['Timestamp', '#', 'Test Run ID', 'Node ID', 'Short Name', 'Long Name', 
+                                'SNR (dB)', 'RSSI (dBm)', 'SNR Towards (dB)']
                 else:
-                    fieldnames = ['#', 'Node ID', 'Short Name', 'Long Name', 
-                                'SNR (dB)', 'RSSI (dBm)', 'SNR Towards (dB)', 'Timestamp']
+                    fieldnames = ['Timestamp', '#', 'Node ID', 'Short Name', 'Long Name', 
+                                'SNR (dB)', 'RSSI (dBm)', 'SNR Towards (dB)']
                 
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
                 
@@ -404,6 +404,7 @@ class NearbyNodeDiscoverer:
                     # Create row data
                     if self.test_run_id:
                         row = {
+                            'Timestamp': timestamp,
                             '#': str(i),
                             'Test Run ID': self.test_run_id,
                             'Node ID': node_id,
@@ -411,19 +412,18 @@ class NearbyNodeDiscoverer:
                             'Long Name': long_name,
                             'SNR (dB)': snr,
                             'RSSI (dBm)': rssi,
-                            'SNR Towards (dB)': snr_towards,
-                            'Timestamp': timestamp
+                            'SNR Towards (dB)': snr_towards
                         }
                     else:
                         row = {
+                            'Timestamp': timestamp,
                             '#': str(i),
                             'Node ID': node_id,
                             'Short Name': short_name,
                             'Long Name': long_name,
                             'SNR (dB)': snr,
                             'RSSI (dBm)': rssi,
-                            'SNR Towards (dB)': snr_towards,
-                            'Timestamp': timestamp
+                            'SNR Towards (dB)': snr_towards
                         }
                     
                     writer.writerow(row)
@@ -483,6 +483,7 @@ class NearbyNodeDiscoverer:
                     title=f"\n📊 Discovery complete! Found {nearby_count} "
                     "nearby nodes:"
                 )
+                table.add_column("Timestamp", style="white", no_wrap=True)
                 table.add_column("#", style="cyan", no_wrap=True)
                 if self.test_run_id:
                     table.add_column("Test Run ID", style="dim", no_wrap=True)
@@ -492,7 +493,6 @@ class NearbyNodeDiscoverer:
                 table.add_column("SNR (dB)", style="green")
                 table.add_column("RSSI (dBm)", style="yellow")
                 table.add_column("SNR Towards (dB)", style="bright_blue")
-                table.add_column("Timestamp", style="white", no_wrap=True)
 
                 for i, node in enumerate(self.nearby_nodes, 1):
                     node_id = node["id"]
@@ -519,11 +519,11 @@ class NearbyNodeDiscoverer:
 
                     if self.test_run_id:
                         table.add_row(
-                            str(i), self.test_run_id, node_id, short_name, long_name, snr, rssi, snr_towards, timestamp
+                            timestamp, str(i), self.test_run_id, node_id, short_name, long_name, snr, rssi, snr_towards
                         )
                     else:
                         table.add_row(
-                            str(i), node_id, short_name, long_name, snr, rssi, snr_towards, timestamp
+                            timestamp, str(i), node_id, short_name, long_name, snr, rssi, snr_towards
                         )
 
                 self.console.print(table)
