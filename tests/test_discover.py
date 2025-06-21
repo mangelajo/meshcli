@@ -106,8 +106,8 @@ def test_discover_command_help():
     assert result.exit_code == 0
     assert "Discover nearby Meshtastic nodes" in result.output
     assert "--duration" in result.output
-    assert "--interface" in result.output
-    assert "--device" in result.output
+    assert "--interface-type" in result.output
+    assert "--address" in result.output
 
 
 @patch("meshcli.discover.NearbyNodeDiscoverer")

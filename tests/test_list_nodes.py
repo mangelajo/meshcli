@@ -104,8 +104,8 @@ def test_list_nodes_command_help():
 
     assert result.exit_code == 0
     assert "Show currently known nodes" in result.output
-    assert "--interface" in result.output
-    assert "--device" in result.output
+    assert "--interface-type" in result.output
+    assert "--address" in result.output
 
 
 @patch("meshcli.list_nodes.NodeLister")
@@ -115,7 +115,7 @@ def test_list_nodes_command_execution(mock_lister_class):
     mock_lister_class.return_value = mock_lister
 
     runner = CliRunner()
-    result = runner.invoke(list_nodes, ["--interface", "tcp", "--device", "test.local"])
+    result = runner.invoke(list_nodes, ["--interface-type", "tcp", "--address", "test.local"])
 
     assert result.exit_code == 0
     mock_lister_class.assert_called_once_with(

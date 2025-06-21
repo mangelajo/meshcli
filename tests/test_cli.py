@@ -79,7 +79,7 @@ def test_discover_command_with_tcp_interface(mock_connect):
     runner = CliRunner()
     result = runner.invoke(
         main,
-        ["discover", "--interface", "tcp", "--device", "test.local", "--duration", "1"],
+        ["discover", "--interface-type", "tcp", "--address", "test.local", "--duration", "1"],
     )
 
     # Should attempt to use TCP interface and handle connection failure
@@ -94,7 +94,7 @@ def test_list_nodes_command_with_tcp_interface(mock_connect):
     
     runner = CliRunner()
     result = runner.invoke(
-        main, ["list-nodes", "--interface", "tcp", "--device", "test.local"]
+        main, ["list-nodes", "--interface-type", "tcp", "--address", "test.local"]
     )
 
     # Should attempt to use TCP interface

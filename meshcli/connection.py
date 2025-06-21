@@ -8,14 +8,21 @@ import meshtastic.ble_interface
 
 def detect_interface_type(address: str) -> str:
     """Auto-detect interface type based on address format."""
+    if not address or address == "any":
+        return "ble"  # Default to BLE for auto-discovery
     if address.startswith("/dev/"):
         return "serial"
-    if re.match(r"^\d{1,3}(\.\d{1,3}){3}$", address) or ":" in address:
+    # IP addresses (IPv4 and IPv6)
+    if re.match(r"^\d{1,3}(\.\d{1,3}){3}$", address) or ":" in address and "::" in address:
         return "tcp"
-    # Match BLE MAC address (e.g., 01:23:45:67:89:AB)
-    if re.match(r"^[a-zA-Z0-9\-\.]+$", address):
+    # Hostnames (contain dots or are common hostnames)
+    if "." in address or address in ["localhost", "meshtastic.local"]:
         return "tcp"
-    return "ble" # node names, uuids, or other formats default to BLE
+    # BLE MAC address format (XX:XX:XX:XX:XX:XX)
+    if re.match(r"^[0-9a-fA-F]{2}(:[0-9a-fA-F]{2}){5}$", address):
+        return "ble"
+    # Default to BLE for other formats (device names, UUIDs, etc.)
+    return "ble"
 
 def connect(address: str = None, interface_type: str = "auto", **kwargs):
     """Create and return the appropriate interface based on type or auto-detect."""
@@ -51,7 +58,7 @@ def address_options(func):
     )(func)
     func = click.option(
         "--address",
-        default="any", # any bluetooth device
+        default=None,
         help="Device address (serial port, IP, or BLE MAC/name)"
     )(func)
     return func
