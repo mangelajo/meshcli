@@ -6,44 +6,24 @@ import click
 import meshtastic
 import meshtastic.serial_interface
 import meshtastic.tcp_interface
-import meshtastic.ble_interface
+from .connection import address_options, connect
 
 
 class NodeLister:
     def __init__(self, interface_type="serial", device_path=None):
-        self.interface = None
         self.interface_type = interface_type
         self.device_path = device_path
+        self.interface = None
 
     def connect(self):
-        """Connect to the Meshtastic device"""
+        """Connect to the Meshtastic device using the unified connect function."""
+        self.interface = connect(address=self.device_path, interface_type=self.interface_type)
+        if self.interface is None:
+            return False
         try:
-            if self.interface_type == "serial":
-                if self.device_path:
-                    self.interface = meshtastic.serial_interface.SerialInterface(
-                        devPath=self.device_path
-                    )
-                else:
-                    self.interface = meshtastic.serial_interface.SerialInterface()
-            elif self.interface_type == "tcp":
-                hostname = self.device_path or "meshtastic.local"
-                self.interface = meshtastic.tcp_interface.TCPInterface(
-                    hostname=hostname
-                )
-            elif self.interface_type == "bluetooth":
-                if self.device_path:
-                    self.interface = meshtastic.ble_interface.BLEInterface(
-                        address=self.device_path
-                    )
-                else:
-                    self.interface = meshtastic.ble_interface.BLEInterface()
-            else:
-                raise ValueError(f"Unsupported interface type: {self.interface_type}")
-
             self.interface.waitForConfig()
             click.echo("Connected to Meshtastic device")
             return True
-
         except Exception as e:
             click.echo(f"Failed to connect: {e}", err=True)
             return False
@@ -108,14 +88,8 @@ class NodeLister:
 
 
 @click.command("list-nodes")
-@click.option(
-    "--interface",
-    type=click.Choice(["serial", "tcp", "bluetooth"]),
-    default="serial",
-    help="Interface type to use",
-)
-@click.option("--device", type=str, help="Device path for serial, hostname for TCP, or MAC address for Bluetooth")
-def list_nodes(interface, device):
+@address_options
+def list_nodes(address, interface_type):
     """Show currently known nodes from the node database."""
-    lister = NodeLister(interface_type=interface, device_path=device)
+    lister = NodeLister(interface_type=interface_type, device_path=address)
     lister.show_known_nodes()

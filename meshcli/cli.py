@@ -3,6 +3,8 @@
 import click
 from .discover import discover
 from .list_nodes import list_nodes
+from .ble_scan import ble_scan
+from .connection import connect
 
 
 @click.group()
@@ -19,9 +21,19 @@ def hello(name):
     click.echo(f"Hello {name}!")
 
 
+@click.command()
+@click.option("--address", help="Device address (serial port, IP, or BLE MAC/name)")
+@click.option("--interface-type", default="auto", help="Interface type: serial, tcp, ble, or auto")
+def some_command(address, interface_type):
+    """Example command using the new connection logic."""
+    iface = connect(address=address, interface_type=interface_type)
+    # ... use iface as needed ...
+
+
 # Add the commands to the main group
 main.add_command(discover)
 main.add_command(list_nodes)
+main.add_command(ble_scan)
 
 
 if __name__ == "__main__":
