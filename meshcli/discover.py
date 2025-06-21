@@ -3,15 +3,10 @@
 import time
 
 import click
-import meshtastic
-import meshtastic.serial_interface
-import meshtastic.tcp_interface
-import meshtastic.ble_interface
 from meshtastic import BROADCAST_ADDR
 from meshtastic.protobuf import portnums_pb2, mesh_pb2
 from pubsub import pub
 from rich.console import Console
-from rich.pretty import pprint
 from rich.table import Table
 from .connection import address_options, connect
 
@@ -353,12 +348,9 @@ class NearbyNodeDiscoverer:
 
             # Report results
             nearby_count = len(self.nearby_nodes)
-            click.echo(
-                f"\n📊 Discovery complete! Found {nearby_count} " "nearby nodes:"
-            )
             if self.nearby_nodes:
                 # Create a table for the results
-                table = Table(title="Discovered Nearby Nodes")
+                table = Table(title= f"\n📊 Discovery complete! Found {nearby_count} " "nearby nodes:")
                 table.add_column("#", style="cyan", no_wrap=True)
                 table.add_column("Node ID", style="magenta")
                 table.add_column("Short Name", style="bright_magenta")
