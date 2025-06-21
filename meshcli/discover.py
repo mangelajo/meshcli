@@ -411,6 +411,7 @@ class NearbyNodeDiscoverer:
                 table.add_column("SNR (dB)", style="green")
                 table.add_column("RSSI (dBm)", style="yellow")
                 table.add_column("SNR Towards (dB)", style="bright_blue")
+                table.add_column("Timestamp", style="white", no_wrap=True)
 
                 for i, node in enumerate(self.nearby_nodes, 1):
                     node_id = node["id"]
@@ -431,13 +432,17 @@ class NearbyNodeDiscoverer:
                         else ""
                     )
 
+                    # Format timestamp
+                    import datetime
+                    timestamp = datetime.datetime.fromtimestamp(node["timestamp"]).strftime('%H:%M:%S')
+
                     if self.test_run_id:
                         table.add_row(
-                            str(i), self.test_run_id, node_id, short_name, long_name, snr, rssi, snr_towards
+                            str(i), self.test_run_id, node_id, short_name, long_name, snr, rssi, snr_towards, timestamp
                         )
                     else:
                         table.add_row(
-                            str(i), node_id, short_name, long_name, snr, rssi, snr_towards
+                            str(i), node_id, short_name, long_name, snr, rssi, snr_towards, timestamp
                         )
 
                 self.console.print(table)
