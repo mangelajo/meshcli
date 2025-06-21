@@ -16,12 +16,13 @@ from .list_nodes import NodeLister
 
 
 class NearbyNodeDiscoverer:
-    def __init__(self, interface_type="serial", device_path=None):
+    def __init__(self, interface_type="serial", device_path=None, debug=False):
         self.interface = None
         self.nearby_nodes = []
         self.discovery_active = False
         self.interface_type = interface_type
         self.device_path = device_path
+        self.debug = debug
         self.console = Console()
 
     def connect(self):
@@ -55,9 +56,11 @@ class NearbyNodeDiscoverer:
         if not self.discovery_active:
             return
 
-        # Pretty print the packet details
-        self.console.print("\n[bold blue]📦 Received packet:[/bold blue]")
-        pprint(packet, console=self.console)
+        # Pretty print the packet details only in debug mode
+        if self.debug:
+            self.console.print("\n┌─ [bold blue]📦 Received packet[/bold blue] " + "─" * 50 + "┐")
+            pprint(packet, console=self.console)
+            self.console.print("└" + "─" * 65 + "┘")
 
         if packet.get("decoded", {}).get("portnum") == "TRACEROUTE_APP":
             sender_id = packet.get("fromId", f"!{packet.get('from', 0):08x}")
@@ -220,9 +223,10 @@ class NearbyNodeDiscoverer:
     help="Interface type to use",
 )
 @click.option("--device", type=str, help="Device path for serial or hostname for TCP")
-def discover(duration, interface, device):
+@click.option("--debug", is_flag=True, help="Enable debug mode to show packet details")
+def discover(duration, interface, device, debug):
     """Discover nearby Meshtastic nodes using 0-hop traceroute."""
-    discoverer = NearbyNodeDiscoverer(interface_type=interface, device_path=device)
+    discoverer = NearbyNodeDiscoverer(interface_type=interface, device_path=device, debug=debug)
 
     click.echo("🌐 Meshtastic Nearby Node Discoverer")
     click.echo("=" * 40)
