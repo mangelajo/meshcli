@@ -22,10 +22,11 @@ class TestNearbyNodeDiscoverer:
     def test_init_with_params(self):
         """Test NearbyNodeDiscoverer initialization with parameters."""
         discoverer = NearbyNodeDiscoverer(
-            interface_type="tcp", device_path="test.local"
+            interface_type="tcp", device_path="test.local", debug=True
         )
         assert discoverer.interface_type == "tcp"
         assert discoverer.device_path == "test.local"
+        assert discoverer.debug is True
 
     @patch("meshcli.discover.meshtastic.serial_interface.SerialInterface")
     def test_connect_serial_success(self, mock_serial):
@@ -124,10 +125,10 @@ def test_discover_command_execution(mock_discoverer_class):
     mock_discoverer_class.return_value = mock_discoverer
 
     runner = CliRunner()
-    result = runner.invoke(discover, ["--duration", "5"])
+    result = runner.invoke(discover, ["--duration", "1"])
 
     assert result.exit_code == 0
     mock_discoverer_class.assert_called_once_with(
-        interface_type="serial", device_path=None
+        interface_type="serial", device_path=None, debug=False
     )
-    mock_discoverer.discover_nearby_nodes.assert_called_once_with(duration=5)
+    mock_discoverer.discover_nearby_nodes.assert_called_once_with(duration=1)

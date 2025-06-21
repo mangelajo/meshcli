@@ -71,17 +71,20 @@ def test_list_nodes_command_connection_failure(mock_serial):
     assert "Failed to connect" in result.output
 
 
-@patch("meshcli.discover.meshtastic.serial_interface.SerialInterface")
-def test_discover_command_with_tcp_interface(mock_serial):
+@patch("meshcli.discover.meshtastic.tcp_interface.TCPInterface")
+def test_discover_command_with_tcp_interface(mock_tcp):
     """Test discover command with TCP interface option."""
+    mock_tcp.side_effect = Exception("Connection failed")
+    
     runner = CliRunner()
     result = runner.invoke(
         main,
         ["discover", "--interface", "tcp", "--device", "test.local", "--duration", "1"],
     )
 
-    # Should attempt to use TCP interface
+    # Should attempt to use TCP interface and handle connection failure
     assert result.exit_code == 0
+    assert "Failed to connect" in result.output
 
 
 @patch("meshcli.list_nodes.meshtastic.serial_interface.SerialInterface")
