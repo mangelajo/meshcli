@@ -7,6 +7,7 @@ from meshtastic import BROADCAST_ADDR
 from meshtastic.protobuf import portnums_pb2, mesh_pb2
 from pubsub import pub
 from rich.console import Console
+from rich.panel import Panel
 from rich.table import Table
 from .connection import address_options, connect
 
@@ -45,15 +46,16 @@ class NearbyNodeDiscoverer:
 
         # Pretty print the packet details only in debug mode
         if self.debug:
-            self.console.print(
-                "\n┌─ [bold blue]📦 Received Traceroute Packet[/bold blue] "
-                + "─" * 40
-                + "┐"
-            )
             packet_details = self.format_packet_details(packet)
-            for detail in packet_details:
-                self.console.print(f"│ {detail}")
-            self.console.print("└" + "─" * 65 + "┘")
+            content = "\n".join(packet_details)
+            
+            panel = Panel(
+                content,
+                title="[bold blue]📦 Received Traceroute Packet[/bold blue]",
+                border_style="blue",
+                padding=(0, 1)
+            )
+            self.console.print(panel)
 
         if packet.get("decoded", {}).get("portnum") == "TRACEROUTE_APP":
             sender_id = packet.get("fromId", f"!{packet.get('from', 0):08x}")
@@ -96,23 +98,23 @@ class NearbyNodeDiscoverer:
                     candidate_names = [cand["name"] for cand in candidates]
                     relay_display += f" (candidates: {', '.join(candidate_names)})"
 
-            # Create a beautiful frame for the discovery output
-            self.console.print(
-                "\n┌─ [bold green]📡 Nearby Node Discovered[/bold green] "
-                + "─" * 30
-                + "┐"
-            )
-            self.console.print(f"│ [bold cyan]Node:[/bold cyan] {display_name}{relay_display}")
+            # Create content for the panel
+            content = f"[bold cyan]Node:[/bold cyan] {display_name}{relay_display}\n"
             
             if snr != "Unknown":
                 if snr_towards is not None:
-                    self.console.print(
-                        f"│ [bold green]Signal:[/bold green] SNR={snr}dB, RSSI={rssi}dBm, SNR_towards={snr_towards}dB"
-                    )
+                    content += f"[bold green]Signal:[/bold green] SNR={snr}dB, RSSI={rssi}dBm, SNR_towards={snr_towards}dB"
                 else:
-                    self.console.print(f"│ [bold green]Signal:[/bold green] SNR={snr}dB, RSSI={rssi}dBm")
+                    content += f"[bold green]Signal:[/bold green] SNR={snr}dB, RSSI={rssi}dBm"
             
-            self.console.print("└" + "─" * 65 + "┘")
+            # Create a beautiful panel for the discovery output
+            panel = Panel(
+                content,
+                title="[bold green]📡 Nearby Node Discovered[/bold green]",
+                border_style="green",
+                padding=(0, 1)
+            )
+            self.console.print(panel)
 
             self.nearby_nodes.append(
                 {
