@@ -10,6 +10,7 @@ from meshtastic.protobuf import portnums_pb2, mesh_pb2
 from pubsub import pub
 from rich.console import Console
 from rich.panel import Panel
+from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeElapsedColumn
 from rich.table import Table
 from .connection import address_options, connect
 
@@ -468,10 +469,23 @@ class NearbyNodeDiscoverer:
             click.echo(f"   Packet ID: {packet.id}")
             click.echo("\n📻 Listening for nearby node responses...")
 
-            # Listen for responses
-            start_time = time.time()
-            while time.time() - start_time < duration:
-                time.sleep(0.5)
+            # Listen for responses with progress bar
+            with Progress(
+                SpinnerColumn(),
+                TextColumn("[progress.description]{task.description}"),
+                BarColumn(),
+                TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+                TimeElapsedColumn(),
+                console=self.console,
+                transient=True
+            ) as progress:
+                task = progress.add_task("Discovering nodes...", total=duration)
+                
+                start_time = time.time()
+                while time.time() - start_time < duration:
+                    elapsed = time.time() - start_time
+                    progress.update(task, completed=elapsed)
+                    time.sleep(0.1)  # More frequent updates for smoother progress bar
 
             self.discovery_active = False
 
