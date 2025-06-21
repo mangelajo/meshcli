@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 
 from click.testing import CliRunner
 
-from meshcli.list_nodes import NodeLister, list_nodes
+from mesh_cli.list_nodes import NodeLister, list_nodes
 
 
 class TestNodeLister:
@@ -23,7 +23,7 @@ class TestNodeLister:
         assert lister.interface_type == "tcp"
         assert lister.device_path == "test.local"
 
-    @patch("meshcli.list_nodes.connect")
+    @patch("mesh_cli.list_nodes.connect")
     def test_connect_success(self, mock_connect):
         """Test successful connection."""
         mock_interface = Mock()
@@ -36,7 +36,7 @@ class TestNodeLister:
         mock_connect.assert_called_once_with(address=None, interface_type="serial")
         mock_interface.waitForConfig.assert_called_once()
 
-    @patch("meshcli.list_nodes.connect")
+    @patch("mesh_cli.list_nodes.connect")
     def test_connect_failure(self, mock_connect):
         """Test failed connection."""
         mock_connect.return_value = None
@@ -46,7 +46,7 @@ class TestNodeLister:
 
         assert result is False
 
-    @patch("meshcli.list_nodes.connect")
+    @patch("mesh_cli.list_nodes.connect")
     def test_connect_with_params(self, mock_connect):
         """Test connection with specific parameters."""
         mock_interface = Mock()
@@ -59,7 +59,7 @@ class TestNodeLister:
         mock_connect.assert_called_once_with(address="test.local", interface_type="tcp")
         mock_interface.waitForConfig.assert_called_once()
 
-    @patch("meshcli.list_nodes.connect")
+    @patch("mesh_cli.list_nodes.connect")
     def test_show_known_nodes_empty_database(self, mock_connect):
         """Test showing known nodes with empty database."""
         mock_interface = Mock()
@@ -68,13 +68,13 @@ class TestNodeLister:
 
         lister = NodeLister()
 
-        with patch("meshcli.list_nodes.click.echo") as mock_echo:
+        with patch("mesh_cli.list_nodes.click.echo") as mock_echo:
             lister.show_known_nodes()
 
         # Should indicate empty database
         mock_echo.assert_any_call("  Node database is empty")
 
-    @patch("meshcli.list_nodes.connect")
+    @patch("mesh_cli.list_nodes.connect")
     def test_show_known_nodes_with_nodes(self, mock_connect):
         """Test showing known nodes with populated database."""
         mock_interface = Mock()
@@ -90,7 +90,7 @@ class TestNodeLister:
 
         lister = NodeLister()
 
-        with patch("meshcli.list_nodes.click.echo") as mock_echo:
+        with patch("mesh_cli.list_nodes.click.echo") as mock_echo:
             lister.show_known_nodes()
 
         # Should show the node information
@@ -108,7 +108,7 @@ def test_list_nodes_command_help():
     assert "--address" in result.output
 
 
-@patch("meshcli.list_nodes.NodeLister")
+@patch("mesh_cli.list_nodes.NodeLister")
 def test_list_nodes_command_execution(mock_lister_class):
     """Test list-nodes command execution."""
     mock_lister = Mock()

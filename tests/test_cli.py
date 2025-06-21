@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 
 from click.testing import CliRunner
 
-from meshcli.cli import main
+from mesh_cli.cli import main
 
 
 def test_main_help():
@@ -47,7 +47,7 @@ def test_list_nodes_command_help():
     assert "Show currently known nodes" in result.output
 
 
-@patch("meshcli.discover.connect")
+@patch("mesh_cli.discover.connect")
 def test_discover_command_connection_failure(mock_connect):
     """Test discover command handles connection failure gracefully."""
     mock_connect.return_value = None
@@ -59,7 +59,7 @@ def test_discover_command_connection_failure(mock_connect):
     assert "Failed to connect" in result.output
 
 
-@patch("meshcli.list_nodes.connect")
+@patch("mesh_cli.list_nodes.connect")
 def test_list_nodes_command_connection_failure(mock_connect):
     """Test list-nodes command handles connection failure gracefully."""
     mock_connect.return_value = None
@@ -71,7 +71,7 @@ def test_list_nodes_command_connection_failure(mock_connect):
     assert "Failed to connect" in result.output
 
 
-@patch("meshcli.discover.connect")
+@patch("mesh_cli.discover.connect")
 def test_discover_command_with_tcp_interface(mock_connect):
     """Test discover command with TCP interface option."""
     mock_connect.return_value = None
@@ -95,7 +95,7 @@ def test_discover_command_with_tcp_interface(mock_connect):
     assert "Failed to connect" in result.output
 
 
-@patch("meshcli.list_nodes.connect")
+@patch("mesh_cli.list_nodes.connect")
 def test_list_nodes_command_with_tcp_interface(mock_connect):
     """Test list-nodes command with TCP interface option."""
     mock_connect.return_value = None
@@ -118,7 +118,7 @@ def test_scan_ble_command_help():
     assert "Scan for Meshtastic BLE devices" in result.output
 
 
-@patch("meshcli.scan_ble.meshtastic.ble_interface.BLEInterface.scan")
+@patch("mesh_cli.scan_ble.meshtastic.ble_interface.BLEInterface.scan")
 def test_scan_ble_command_success(mock_scan):
     """Test scan-ble command with successful scan."""
     mock_device = Mock()
@@ -135,7 +135,7 @@ def test_scan_ble_command_success(mock_scan):
     assert "AA:BB:CC:DD:EE:FF" in result.output
 
 
-@patch("meshcli.scan_ble.meshtastic.ble_interface.BLEInterface.scan")
+@patch("mesh_cli.scan_ble.meshtastic.ble_interface.BLEInterface.scan")
 def test_scan_ble_command_no_devices(mock_scan):
     """Test scan-ble command with no devices found."""
     mock_scan.return_value = []
@@ -147,7 +147,7 @@ def test_scan_ble_command_no_devices(mock_scan):
     assert "No BLE devices found" in result.output
 
 
-@patch("meshcli.scan_ble.meshtastic.ble_interface.BLEInterface.scan")
+@patch("mesh_cli.scan_ble.meshtastic.ble_interface.BLEInterface.scan")
 def test_scan_ble_command_error(mock_scan):
     """Test scan-ble command with scan error."""
     mock_scan.side_effect = Exception("Scan failed")

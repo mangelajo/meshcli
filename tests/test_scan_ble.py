@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 
 from click.testing import CliRunner
 
-from meshcli.scan_ble import scan_ble
+from mesh_cli.scan_ble import scan_ble
 
 
 def test_scan_ble_command_help():
@@ -16,7 +16,7 @@ def test_scan_ble_command_help():
     assert "Scan for Meshtastic BLE devices" in result.output
 
 
-@patch("meshcli.scan_ble.meshtastic.ble_interface.BLEInterface.scan")
+@patch("mesh_cli.scan_ble.meshtastic.ble_interface.BLEInterface.scan")
 def test_scan_ble_success(mock_scan):
     """Test successful BLE scan."""
     mock_device1 = Mock()
@@ -40,7 +40,7 @@ def test_scan_ble_success(mock_scan):
     assert "11:22:33:44:55:66" in result.output
 
 
-@patch("meshcli.scan_ble.meshtastic.ble_interface.BLEInterface.scan")
+@patch("mesh_cli.scan_ble.meshtastic.ble_interface.BLEInterface.scan")
 def test_scan_ble_no_devices(mock_scan):
     """Test BLE scan with no devices found."""
     mock_scan.return_value = []
@@ -53,7 +53,7 @@ def test_scan_ble_no_devices(mock_scan):
     assert "No BLE devices found" in result.output
 
 
-@patch("meshcli.scan_ble.meshtastic.ble_interface.BLEInterface.scan")
+@patch("mesh_cli.scan_ble.meshtastic.ble_interface.BLEInterface.scan")
 def test_scan_ble_error(mock_scan):
     """Test BLE scan with error."""
     mock_scan.side_effect = Exception("Bluetooth not available")

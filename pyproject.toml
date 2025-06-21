@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "meshcli"
+name = "mesh_cli"
 version = "0.1.0"
 description = "A CLI tool for mesh operations"
 authors = [
@@ -19,11 +19,11 @@ dependencies = [
 ]
 
 [project.scripts]
-meshcli = "meshcli.cli:main"
+mesh-cli = "mesh_cli.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/miguelangel-ajo/meshcli"
-Repository = "https://github.com/miguelangel-ajo/meshcli"
+Homepage = "https://github.com/miguelangel-ajo/mesh_cli"
+Repository = "https://github.com/miguelangel-ajo/mesh_cli"
 
 [tool.uv]
 dev-dependencies = [
