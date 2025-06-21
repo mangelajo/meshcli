@@ -160,7 +160,7 @@ class NearbyNodeDiscoverer:
         relay_display = relay_node
         if relay_node != 'Unknown' and isinstance(relay_node, int):
             relay_hex = f"______{relay_node:02x}"
-            relay_display = f"{relay_node} (0x{relay_hex})"
+            relay_display = f"0x{relay_hex}"
             
             # Find candidate nodes based on last hex digits
             candidates = self.find_relay_candidates(relay_node)
