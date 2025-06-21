@@ -59,10 +59,10 @@ class NearbyNodeDiscoverer:
             rssi = packet.get("rxRssi", "Unknown")
             rnode = packet.get("relay_node")
 
-            # Check if this is a replied packet (SNR back entries > 1)
+            # Check if this is a forwarded packet (SNR back entries > 1)
             traceroute = packet.get("decoded", {}).get("traceroute", {})
             snr_back = traceroute.get("snrBack", []) if traceroute else []
-            is_replied_packet = len(snr_back) > 1
+            is_forwarded_packet = len(snr_back) > 1
 
             # Extract snrTowards values from traceroute data
             snr_towards = None
@@ -72,10 +72,10 @@ class NearbyNodeDiscoverer:
                     # Convert raw values to dB by dividing by 4.0, skip first 0.0
                     snr_towards = snr_towards_raw[-1] / 4.0
 
-            # Skip SNR consideration if this is a replied packet
-            if is_replied_packet:
-                snr = "Replied"
-                rssi = "Replied"
+            # Skip SNR consideration if this is a forwarded packet
+            if is_forwarded_packet:
+                snr = "Forwarded"
+                rssi = "Forwarded"
 
             # Format display name with known node info
             display_name = self.format_node_display(sender_id, getattr(self, 'known_nodes', {}))
