@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "meshctl"
-version = "0.1.0"
-description = "A CLI tool for mesh operations"
+version = "0.1.2"
+description = "A CLI tool for meshtastic operations"
 authors = [
     {name = "Miguel Angel Ajo Pelayo", email = "miguelangel@ajo.es"}
 ]
@@ -14,7 +14,6 @@ requires-python = ">=3.8"
 dependencies = [
     "click>=8.0.0",
     "meshtastic>=2.3.14",
-    "ruff>=0.12.0",
     "rich>=13.0.0",
 ]
 
@@ -22,13 +21,14 @@ dependencies = [
 meshctl = "meshctl.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/miguelangel-ajo/meshctl"
-Repository = "https://github.com/miguelangel-ajo/meshctl"
+Homepage = "https://github.com/mangelajo/meshctl"
+Repository = "https://github.com/mangelajo/meshctl"
 
 [tool.uv]
 dev-dependencies = [
     "pytest>=7.0.0",
     "black>=22.0.0",
+    "ruff>=0.12.0",
     "flake8>=4.0.0",
 ]
 
