@@ -214,20 +214,29 @@ class NearbyNodeDiscoverer:
         return details
 
     def find_relay_candidates(self, relay_node_last_byte):
-        """Find known nodes that could match the relay node based on last hex digits"""
+        """Find known nodes at 0 hops that could match the relay node based on last hex digits"""
         candidates = []
         known_nodes = getattr(self, 'known_nodes', {})
         
-        for node_id, node_info in known_nodes.items():
-            node_num = node_info.get('node_num')
-            if node_num is not None:
-                # Check if the last byte matches
-                if (node_num & 0xFF) == relay_node_last_byte:
-                    candidates.append({
-                        'id': node_id,
-                        'node_num': node_num,
-                        'name': self.format_node_display(node_id, known_nodes)
-                    })
+        # Only consider nodes that are at 0 hops (directly reachable)
+        if self.interface and self.interface.nodesByNum:
+            for node_num, node in self.interface.nodesByNum.items():
+                # Skip ourselves
+                if node_num == self.interface.localNode.nodeNum:
+                    continue
+                
+                # Only consider nodes at 0 hops
+                if node.get('hopsAway', float('inf')) == 0:
+                    # Check if the last byte matches
+                    if (node_num & 0xFF) == relay_node_last_byte:
+                        user = node.get("user", {})
+                        node_id = user.get("id", f"!{node_num:08x}")
+                        
+                        candidates.append({
+                            'id': node_id,
+                            'node_num': node_num,
+                            'name': self.format_node_display(node_id, known_nodes)
+                        })
         
         return candidates
 
