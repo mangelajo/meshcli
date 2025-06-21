@@ -11,11 +11,11 @@ def main():
 
 
 @main.command()
-@click.option('--name', default='World', help='Name to greet.')
+@click.option("--name", default="World", help="Name to greet.")
 def hello(name):
     """Simple program that greets NAME."""
-    click.echo(f'Hello {name}!')
+    click.echo(f"Hello {name}!")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
