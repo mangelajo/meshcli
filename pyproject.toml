@@ -1,0 +1,30 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "meshcli"
+version = "0.1.0"
+description = "A CLI tool for mesh operations"
+authors = [
+    {name = "Miguel Angel Ajo Pelayo", email = "miguelangel@ajo.es"}
+]
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "click>=8.0.0",
+]
+
+[project.scripts]
+meshcli = "meshcli.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/miguelangel-ajo/meshcli"
+Repository = "https://github.com/miguelangel-ajo/meshcli"
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=7.0.0",
+    "black>=22.0.0",
+    "flake8>=4.0.0",
+]
