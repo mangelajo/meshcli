@@ -13,49 +13,28 @@ from pubsub import pub
 from rich.console import Console
 from rich.pretty import pprint
 from rich.table import Table
-
-from .list_nodes import NodeLister
+from .connection import address_options, connect
 
 
 class NearbyNodeDiscoverer:
-    def __init__(self, interface_type="serial", device_path=None, debug=False):
-        self.interface = None
-        self.nearby_nodes = []
-        self.discovery_active = False
+    def __init__(self, interface_type="auto", device_path=None, debug=False):
         self.interface_type = interface_type
         self.device_path = device_path
+        self.interface = None
         self.debug = debug
+        self.nearby_nodes = []
+        self.discovery_active = False
         self.console = Console()
 
     def connect(self):
-        """Connect to the Meshtastic device"""
+        """Connect to the Meshtastic device using the unified connect function."""
+        self.interface = connect(address=self.device_path, interface_type=self.interface_type)
+        if self.interface is None:
+            return False
         try:
-            if self.interface_type == "serial":
-                if self.device_path:
-                    self.interface = meshtastic.serial_interface.SerialInterface(
-                        devPath=self.device_path
-                    )
-                else:
-                    self.interface = meshtastic.serial_interface.SerialInterface()
-            elif self.interface_type == "tcp":
-                hostname = self.device_path or "meshtastic.local"
-                self.interface = meshtastic.tcp_interface.TCPInterface(
-                    hostname=hostname
-                )
-            elif self.interface_type == "bluetooth":
-                if self.device_path:
-                    self.interface = meshtastic.ble_interface.BLEInterface(
-                        address=self.device_path
-                    )
-                else:
-                    self.interface = meshtastic.ble_interface.BLEInterface()
-            else:
-                raise ValueError(f"Unsupported interface type: {self.interface_type}")
-
             self.interface.waitForConfig()
             click.echo("Connected to Meshtastic device")
             return True
-
         except Exception as e:
             click.echo(f"Failed to connect: {e}", err=True)
             return False
@@ -249,23 +228,17 @@ class NearbyNodeDiscoverer:
 
 
 @click.command()
+@address_options
 @click.option(
     "--duration",
     type=int,
-    default=15,
+    default=45,
     help="How long to listen for responses (seconds)",
 )
-@click.option(
-    "--interface",
-    type=click.Choice(["serial", "tcp", "bluetooth"]),
-    default="serial",
-    help="Interface type to use",
-)
-@click.option("--device", type=str, help="Device path for serial, hostname for TCP, or MAC address for Bluetooth")
 @click.option("--debug", is_flag=True, help="Enable debug mode to show packet details")
-def discover(duration, interface, device, debug):
+def discover(address, interface_type, duration, debug):
     """Discover nearby Meshtastic nodes using 0-hop traceroute."""
-    discoverer = NearbyNodeDiscoverer(interface_type=interface, device_path=device, debug=debug)
+    discoverer = NearbyNodeDiscoverer(interface_type=interface_type, device_path=address, debug=debug)
 
     click.echo("🌐 Meshtastic Nearby Node Discoverer")
     click.echo("=" * 40)
