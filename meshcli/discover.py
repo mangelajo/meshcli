@@ -11,6 +11,7 @@ from meshtastic.protobuf import portnums_pb2, mesh_pb2
 from pubsub import pub
 from rich.console import Console
 from rich.pretty import pprint
+from rich.table import Table
 
 from .list_nodes import NodeLister
 
@@ -177,18 +178,31 @@ class NearbyNodeDiscoverer:
                 f"\n📊 Discovery complete! Found {nearby_count} " "nearby nodes:"
             )
             if self.nearby_nodes:
+                # Create a table for the results
+                table = Table(title="Discovered Nearby Nodes")
+                table.add_column("#", style="cyan", no_wrap=True)
+                table.add_column("Node", style="magenta")
+                table.add_column("SNR (dB)", style="green")
+                table.add_column("RSSI (dBm)", style="yellow")
+                table.add_column("SNR Towards (dB)", style="blue")
+
                 for i, node in enumerate(self.nearby_nodes, 1):
                     node_id = node['id']
                     display_name = self.format_node_display(node_id, known_nodes)
-                    click.echo(f"  {i}. {display_name}")
-                    if node["snr"] != "Unknown":
-                        snr = node["snr"]
-                        rssi = node["rssi"]
-                        snr_towards = node.get("snr_towards")
-                        if snr_towards is not None:
-                            click.echo(f"     Signal: SNR={snr}dB, RSSI={rssi}dBm, SNR_towards={snr_towards}dB")
-                        else:
-                            click.echo(f"     Signal: SNR={snr}dB, " f"RSSI={rssi}dBm")
+                    
+                    snr = str(node["snr"]) if node["snr"] != "Unknown" else "Unknown"
+                    rssi = str(node["rssi"]) if node["rssi"] != "Unknown" else "Unknown"
+                    snr_towards = str(node.get("snr_towards", "")) if node.get("snr_towards") is not None else ""
+                    
+                    table.add_row(
+                        str(i),
+                        display_name,
+                        snr,
+                        rssi,
+                        snr_towards
+                    )
+
+                self.console.print(table)
             else:
                 click.echo("  No nearby nodes detected or they didn't " "respond.")
 
