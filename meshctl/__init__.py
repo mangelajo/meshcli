@@ -1,3 +1,10 @@
 """meshcli - A CLI tool for mesh operations."""
 
-__version__ = "0.1.2"
+from importlib.metadata import version, PackageNotFoundError
+
+try:
+    __version__ = version("meshctl")
+except PackageNotFoundError:
+    # Package is not installed, so we can't determine the version this way.
+    # This can happen during development.
+    __version__ = "unknown"
