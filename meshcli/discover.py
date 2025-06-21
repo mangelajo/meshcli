@@ -400,7 +400,7 @@ class NearbyNodeDiscoverer:
                     )
                     
                     # Format timestamp
-                    timestamp = datetime.datetime.fromtimestamp(node["timestamp"]).strftime('%H:%M:%S')
+                    timestamp = datetime.datetime.fromtimestamp(node["timestamp"]).strftime('%Y-%m-%d %H:%M:%S')
                     
                     # Create row data
                     if self.test_run_id:
