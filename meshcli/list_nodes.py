@@ -76,7 +76,8 @@ class NodeLister:
 
                 if known_nodes:
                     # Sort by last heard (most recent first)
-                    sort_key = lambda x: x['last_heard'] or 0
+                    def sort_key(x):
+                        return x['last_heard'] or 0
                     known_nodes.sort(key=sort_key, reverse=True)
 
                     for i, node in enumerate(known_nodes, 1):
