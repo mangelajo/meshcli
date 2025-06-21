@@ -244,7 +244,7 @@ def hello(name):
 
 
 @main.command()
-@click.option("--mode", type=click.Choice(['simple', 'builtin', 'interactive', 'show']), 
+@click.option("--mode", type=click.Choice(['simple', 'builtin', 'interactive']), 
               default='builtin', help='Discovery mode')
 @click.option("--duration", type=int, default=15, 
               help='How long to listen for responses in interactive mode (seconds)')
@@ -286,10 +286,16 @@ def discover(mode, duration, timeout, interface, device):
             click.echo("✅ Discovery completed successfully")
         else:
             click.echo("ℹ️  No nearby nodes found")
-        
-    elif mode == 'show':
-        click.echo("Mode: Show known nodes from database")
-        discoverer.show_known_nodes()
+
+
+@main.command("list-nodes")
+@click.option("--interface", type=click.Choice(['serial', 'tcp']), default='serial',
+              help='Interface type to use')
+@click.option("--device", type=str, help='Device path for serial or hostname for TCP')
+def list_nodes(interface, device):
+    """Show currently known nodes from the node database."""
+    discoverer = NearbyNodeDiscoverer(interface_type=interface, device_path=device)
+    discoverer.show_known_nodes()
 
 
 if __name__ == "__main__":
