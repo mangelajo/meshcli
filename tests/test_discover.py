@@ -128,4 +128,4 @@ def test_discover_command_execution(mock_discoverer_class):
         test_run_id=None,
         csv_file=None,
     )
-    mock_discoverer.discover_nearby_nodes.assert_called_once_with(duration=1)
+    mock_discoverer.discover_nearby_nodes.assert_called_once_with(duration=1, current_run=1, total_runs=1)
