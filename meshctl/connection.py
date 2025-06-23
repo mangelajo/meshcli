@@ -1,6 +1,7 @@
 """Connection utilities for meshcli."""
 
 import re
+import platform
 import click
 import meshtastic.serial_interface
 import meshtastic.tcp_interface
@@ -37,6 +38,10 @@ def connect(address: str = None, interface_type: str = "auto", **kwargs):
     try:
         if interface_type == "serial":
             if address:
+                # On Darwin, recommend /dev/cu.* over /dev/tty.* for outbound connections
+                if platform.system() == "Darwin" and address.startswith("/dev/tty."):
+                    cu_address = address.replace("/dev/tty.", "/dev/cu.")
+                    click.echo(f"Note: On macOS, consider using {cu_address} instead of {address} for better compatibility", err=True)
                 return meshtastic.serial_interface.SerialInterface(
                     devPath=address, **kwargs
                 )
