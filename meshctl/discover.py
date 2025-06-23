@@ -464,7 +464,7 @@ class NearbyNodeDiscoverer:
         except Exception as e:
             click.echo(f"❌ Error writing to CSV file: {e}", err=True)
 
-    def discover_nearby_nodes(self, duration=60):
+    def discover_nearby_nodes(self, duration=60, current_run=None, total_runs=None):
         """Send 0-hop traceroute and listen for responses"""
         if not self.connect():
             return []
@@ -509,7 +509,12 @@ class NearbyNodeDiscoverer:
                 console=self.console,
                 transient=True,
             ) as progress:
-                task = progress.add_task("Discovering nodes...", total=duration)
+                # Create progress description with run info if provided
+                description = "Discovering nodes..."
+                if current_run is not None and total_runs is not None:
+                    description = f"Discovering nodes... (Run {current_run}/{total_runs})"
+                
+                task = progress.add_task(description, total=duration)
 
                 start_time = time.time()
                 while time.time() - start_time < duration:
@@ -663,7 +668,7 @@ def discover(
 
         click.echo(f"Listening for responses for {duration} seconds...")
         run_start_time = time.time()
-        nearby_nodes = discoverer.discover_nearby_nodes(duration=duration)
+        nearby_nodes = discoverer.discover_nearby_nodes(duration=duration, current_run=run_number, total_runs=repeat)
         run_duration = time.time() - run_start_time
 
         all_nodes.extend(nearby_nodes)
