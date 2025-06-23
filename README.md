@@ -1,42 +1,92 @@
-# meshcli
+# meshctl
 
 A CLI tool for mesh operations.
 
 ## Installation
 
+### Using uv (recommended)
+
+Run directly without installation:
 ```bash
-uv pip install -e .
+uvx meshctl
+```
+
+### Using pip in a virtual environment
+
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install meshctl
 ```
 
 ## Usage
 
 ```bash
-meshcli --help
+meshctl --help
 ```
 
 ## Development
 
+### Setup
+
 Install development dependencies:
+
+```bash
+make sync
+```
+
+Or manually with uv:
 
 ```bash
 uv sync --dev
 ```
 
+### Development Commands
+
 Run tests:
 
 ```bash
-uv run pytest
+make test
 ```
 
 Format code:
 
 ```bash
-uv run black .
+make format
 ```
 
 Lint code:
 
 ```bash
-uv run flake8
+make lint
 ```
-# meshcli
+
+Build package:
+
+```bash
+make build
+```
+
+Run all checks:
+
+```bash
+make check
+```
+
+Clean build artifacts:
+
+```bash
+make clean
+```
+
+Install in development mode:
+
+```bash
+make install
+```
+
+See all available commands:
+
+```bash
+make help
+```
