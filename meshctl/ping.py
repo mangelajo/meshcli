@@ -258,7 +258,7 @@ def ping(
 
         click.echo(f"Waiting for response for {duration} seconds...")
         run_start_time = time.time()
-        responses = pinger.ping_node(destination=destination, duration=duration, current_run=run_number, total_runs=repeat)
+        responses = pinger.ping_node(destination_id=destination, duration=duration, current_run=run_number, total_runs=repeat)
         run_duration = time.time() - run_start_time
 
         all_responses.extend(responses)
