@@ -3,6 +3,7 @@
 import click
 from .discover import discover
 from .list_nodes import list_nodes
+from .ping import ping
 from .scan_ble import scan_ble
 from .connection import connect
 
@@ -28,6 +29,7 @@ def some_command(address, interface_type):
 # Add the commands to the main group
 main.add_command(discover)
 main.add_command(list_nodes)
+main.add_command(ping)
 main.add_command(scan_ble)
 
 
