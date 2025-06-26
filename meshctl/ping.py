@@ -3,7 +3,6 @@
 import time
 
 import click
-from meshtastic import BROADCAST_ADDR
 from pubsub import pub
 from rich.panel import Panel
 from rich.progress import (
@@ -29,6 +28,7 @@ class NodePinger(TracerouteBase):
     ):
         super().__init__(interface_type, device_path, debug, test_run_id, csv_file)
         self.ping_responses = []
+        self.response_received = False
 
     def on_traceroute_response(self, packet, interface):
         """Handle traceroute responses during ping"""
@@ -73,9 +73,7 @@ class NodePinger(TracerouteBase):
                 rssi = "Forwarded"
 
             # Format display name with known node info
-            display_name = self.format_node_display(
-                sender_id, self.known_nodes
-            )
+            display_name = self.format_node_display(sender_id, self.known_nodes)
 
             # Format relay node display
             relay_display = ""
@@ -121,6 +119,9 @@ class NodePinger(TracerouteBase):
                 }
             )
 
+            # Set flag to indicate we received a response
+            self.response_received = True
+
     def ping_node(self, destination_id, duration=30, current_run=None, total_runs=None):
         """Send ping to specific node and listen for responses"""
         if not self.connect():
@@ -135,12 +136,15 @@ class NodePinger(TracerouteBase):
 
             self.active = True
             self.ping_responses = []
+            self.response_received = False
 
             click.echo(f"🏓 Pinging node {destination_id}...")
             click.echo(f"   Listening for responses for {duration} seconds...")
 
             # Send ping packet
-            packet = self.send_traceroute(destination_id, hop_limit=3)  # Allow up to 3 hops for ping
+            packet = self.send_traceroute(
+                destination_id, hop_limit=3
+            )  # Allow up to 3 hops for ping
 
             click.echo(f"   Packet ID: {packet.id}")
             click.echo(f"\n📻 Listening for ping response from {destination_id}...")
@@ -158,15 +162,23 @@ class NodePinger(TracerouteBase):
                 # Create progress description with run info if provided
                 description = f"Pinging {destination_id}..."
                 if current_run is not None and total_runs is not None:
-                    description = f"Pinging {destination_id}... (Run {current_run}/{total_runs})"
+                    description = (
+                        f"Pinging {destination_id}... (Run {current_run}/{total_runs})"
+                    )
 
                 task = progress.add_task(description, total=duration)
 
                 start_time = time.time()
-                while time.time() - start_time < duration:
+                while (
+                    time.time() - start_time < duration and not self.response_received
+                ):
                     elapsed = time.time() - start_time
                     progress.update(task, completed=elapsed)
                     time.sleep(0.1)  # More frequent updates for smoother progress bar
+
+                # Update progress to completion if we got a response early
+                if self.response_received:
+                    progress.update(task, completed=duration)
 
             self.active = False
 
@@ -177,7 +189,7 @@ class NodePinger(TracerouteBase):
                 table = self.create_results_table(
                     self.ping_responses,
                     self.known_nodes,
-                    f"\n📊 Ping complete! Received {response_count} response(s) from {destination_id}:"
+                    f"\n📊 Ping complete! Received {response_count} response(s) from {destination_id}:",
                 )
                 self.console.print(table)
 
@@ -229,7 +241,15 @@ class NodePinger(TracerouteBase):
     help="Time interval between repeats in seconds (includes test runtime)",
 )
 def ping(
-    address, interface_type, destination, duration, debug, id, append_to_csv, repeat, repeat_time
+    address,
+    interface_type,
+    destination,
+    duration,
+    debug,
+    id,
+    append_to_csv,
+    repeat,
+    repeat_time,
 ):
     """Ping a specific Meshtastic node using traceroute."""
 
@@ -258,7 +278,12 @@ def ping(
 
         click.echo(f"Waiting for response for {duration} seconds...")
         run_start_time = time.time()
-        responses = pinger.ping_node(destination_id=destination, duration=duration, current_run=run_number, total_runs=repeat)
+        responses = pinger.ping_node(
+            destination_id=destination,
+            duration=duration,
+            current_run=run_number,
+            total_runs=repeat,
+        )
         run_duration = time.time() - run_start_time
 
         all_responses.extend(responses)
@@ -272,7 +297,9 @@ def ping(
         if run_number < repeat:
             remaining_wait = repeat_time - run_duration
             if remaining_wait > 0:
-                click.echo(f"⏳ Waiting {remaining_wait:.1f} seconds until next ping...")
+                click.echo(
+                    f"⏳ Waiting {remaining_wait:.1f} seconds until next ping..."
+                )
                 time.sleep(remaining_wait)
             else:
                 click.echo(

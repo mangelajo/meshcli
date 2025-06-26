@@ -41,7 +41,10 @@ def connect(address: str = None, interface_type: str = "auto", **kwargs):
                 # On Darwin, recommend /dev/cu.* over /dev/tty.* for outbound connections
                 if platform.system() == "Darwin" and address.startswith("/dev/tty."):
                     cu_address = address.replace("/dev/tty.", "/dev/cu.")
-                    click.echo(f"Note: On macOS, consider using {cu_address} instead of {address} for better compatibility", err=True)
+                    click.echo(
+                        f"Note: On macOS, consider using {cu_address} instead of {address} for better compatibility",
+                        err=True,
+                    )
                 return meshtastic.serial_interface.SerialInterface(
                     devPath=address, **kwargs
                 )

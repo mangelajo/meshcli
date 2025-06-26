@@ -74,9 +74,7 @@ class NearbyNodeDiscoverer(TracerouteBase):
                 rssi = "Forwarded"
 
             # Format display name with known node info
-            display_name = self.format_node_display(
-                sender_id, self.known_nodes
-            )
+            display_name = self.format_node_display(sender_id, self.known_nodes)
 
             # Format relay node display
             relay_display = ""
@@ -160,8 +158,10 @@ class NearbyNodeDiscoverer(TracerouteBase):
                 # Create progress description with run info if provided
                 description = "Discovering nodes..."
                 if current_run is not None and total_runs is not None:
-                    description = f"Discovering nodes... (Run {current_run}/{total_runs})"
-                
+                    description = (
+                        f"Discovering nodes... (Run {current_run}/{total_runs})"
+                    )
+
                 task = progress.add_task(description, total=duration)
 
                 start_time = time.time()
@@ -179,7 +179,7 @@ class NearbyNodeDiscoverer(TracerouteBase):
                 table = self.create_results_table(
                     self.nearby_nodes,
                     self.known_nodes,
-                    f"\n📊 Discovery complete! Found {nearby_count} nearby nodes:"
+                    f"\n📊 Discovery complete! Found {nearby_count} nearby nodes:",
                 )
                 self.console.print(table)
 
@@ -259,7 +259,9 @@ def discover(
 
         click.echo(f"Listening for responses for {duration} seconds...")
         run_start_time = time.time()
-        nearby_nodes = discoverer.discover_nearby_nodes(duration=duration, current_run=run_number, total_runs=repeat)
+        nearby_nodes = discoverer.discover_nearby_nodes(
+            duration=duration, current_run=run_number, total_runs=repeat
+        )
         run_duration = time.time() - run_start_time
 
         all_nodes.extend(nearby_nodes)

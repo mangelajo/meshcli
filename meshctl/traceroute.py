@@ -2,29 +2,18 @@
 
 import csv
 import os
-import time
 import datetime
 
 import click
-from meshtastic import BROADCAST_ADDR
 from meshtastic.protobuf import portnums_pb2, mesh_pb2
-from pubsub import pub
 from rich.console import Console
-from rich.panel import Panel
-from rich.progress import (
-    Progress,
-    SpinnerColumn,
-    TextColumn,
-    BarColumn,
-    TimeElapsedColumn,
-)
 from rich.table import Table
 from .connection import connect
 
 
 class TracerouteBase:
     """Base class for traceroute-based functionality."""
-    
+
     def __init__(
         self,
         interface_type="auto",
@@ -118,7 +107,9 @@ class TracerouteBase:
                             {
                                 "id": node_id,
                                 "node_num": node_num,
-                                "name": self.format_node_display(node_id, self.known_nodes),
+                                "name": self.format_node_display(
+                                    node_id, self.known_nodes
+                                ),
                             }
                         )
 
@@ -176,9 +167,7 @@ class TracerouteBase:
             candidates = self.find_relay_candidates(relay_node)
             if candidates:
                 candidate_names = [
-                    self.format_node_display(
-                        cand["id"], self.known_nodes
-                    )
+                    self.format_node_display(cand["id"], self.known_nodes)
                     for cand in candidates
                 ]
                 relay_display += f" - Candidates: {', '.join(candidate_names)}"
@@ -209,7 +198,9 @@ class TracerouteBase:
                     for node in route:
                         node_id = f"!{node:08x}"
                         if node_id in self.known_nodes:
-                            node_name = self.format_node_display(node_id, self.known_nodes)
+                            node_name = self.format_node_display(
+                                node_id, self.known_nodes
+                            )
                             route_parts.append(f"{node_id} ({node_name})")
                         else:
                             route_parts.append(node_id)
@@ -414,9 +405,9 @@ class TracerouteBase:
             )
 
             # Format timestamp
-            timestamp = datetime.datetime.fromtimestamp(
-                node["timestamp"]
-            ).strftime("%H:%M:%S")
+            timestamp = datetime.datetime.fromtimestamp(node["timestamp"]).strftime(
+                "%H:%M:%S"
+            )
 
             if self.test_run_id:
                 table.add_row(
