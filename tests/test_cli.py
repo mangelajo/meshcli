@@ -31,16 +31,22 @@ def test_list_nodes_command_help():
     assert "Show currently known nodes" in result.output
 
 
-@patch("meshctl.discover.connect")
-def test_discover_command_connection_failure(mock_connect):
+@patch("meshctl.discover.NearbyNodeDiscoverer")
+def test_discover_command_connection_failure(mock_discoverer_class):
     """Test discover command handles connection failure gracefully."""
-    mock_connect.return_value = None
+    mock_discoverer = Mock()
+    mock_discoverer.connect.return_value = False
+    mock_discoverer.discover_nearby_nodes.return_value = []
+    mock_discoverer_class.return_value = mock_discoverer
 
     runner = CliRunner()
     result = runner.invoke(main, ["discover", "--duration", "1"])
 
     assert result.exit_code == 0
-    assert "Failed to connect" in result.output
+    # Verify the discoverer was created and discovery method was called
+    mock_discoverer_class.assert_called_once()
+    mock_discoverer.discover_nearby_nodes.assert_called_once()
+    assert "No nearby nodes found" in result.output
 
 
 @patch("meshctl.list_nodes.connect")
@@ -55,10 +61,13 @@ def test_list_nodes_command_connection_failure(mock_connect):
     assert "Failed to connect" in result.output
 
 
-@patch("meshctl.discover.connect")
-def test_discover_command_with_tcp_interface(mock_connect):
+@patch("meshctl.discover.NearbyNodeDiscoverer")
+def test_discover_command_with_tcp_interface(mock_discoverer_class):
     """Test discover command with TCP interface option."""
-    mock_connect.return_value = None
+    mock_discoverer = Mock()
+    mock_discoverer.connect.return_value = False
+    mock_discoverer.discover_nearby_nodes.return_value = []
+    mock_discoverer_class.return_value = mock_discoverer
 
     runner = CliRunner()
     result = runner.invoke(
@@ -74,9 +83,18 @@ def test_discover_command_with_tcp_interface(mock_connect):
         ],
     )
 
-    # Should attempt to use TCP interface and handle connection failure
+    # Should attempt to use TCP interface
     assert result.exit_code == 0
-    assert "Failed to connect" in result.output
+    # Check that the correct parameters were passed
+    mock_discoverer_class.assert_called_once_with(
+        interface_type="tcp",
+        device_path="test.local",
+        debug=False,
+        test_run_id=None,
+        csv_file=None,
+    )
+    mock_discoverer.discover_nearby_nodes.assert_called_once()
+    assert "No nearby nodes found" in result.output
 
 
 @patch("meshctl.list_nodes.connect")

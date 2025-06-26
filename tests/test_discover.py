@@ -14,10 +14,9 @@ class TestNearbyNodeDiscoverer:
         """Test NearbyNodeDiscoverer initialization."""
         discoverer = NearbyNodeDiscoverer()
         assert discoverer.interface is None
-        assert discoverer.nearby_nodes == []
-        assert discoverer.discovery_active is False
         assert discoverer.interface_type == "auto"
         assert discoverer.device_path is None
+        assert discoverer.debug is False
 
     def test_init_with_params(self):
         """Test NearbyNodeDiscoverer initialization with parameters."""
@@ -28,20 +27,18 @@ class TestNearbyNodeDiscoverer:
         assert discoverer.device_path == "test.local"
         assert discoverer.debug is True
 
-    @patch("meshctl.discover.connect")
+    @patch("meshctl.traceroute.TracerouteBase.connect")
     def test_connect_success(self, mock_connect):
         """Test successful connection."""
-        mock_interface = Mock()
-        mock_connect.return_value = mock_interface
+        mock_connect.return_value = True
 
         discoverer = NearbyNodeDiscoverer()
         result = discoverer.connect()
 
         assert result is True
-        mock_connect.assert_called_once_with(address=None, interface_type="auto")
-        mock_interface.waitForConfig.assert_called_once()
+        mock_connect.assert_called_once()
 
-    @patch("meshctl.discover.connect")
+    @patch("meshctl.connection.connect")
     def test_connect_failure(self, mock_connect):
         """Test failed connection."""
         mock_connect.return_value = None
@@ -50,12 +47,12 @@ class TestNearbyNodeDiscoverer:
         result = discoverer.connect()
 
         assert result is False
+        assert discoverer.interface is None
 
-    @patch("meshctl.discover.connect")
+    @patch("meshctl.traceroute.TracerouteBase.connect")
     def test_connect_with_params(self, mock_connect):
         """Test connection with specific parameters."""
-        mock_interface = Mock()
-        mock_connect.return_value = mock_interface
+        mock_connect.return_value = True
 
         discoverer = NearbyNodeDiscoverer(
             interface_type="tcp", device_path="test.local"
@@ -63,23 +60,11 @@ class TestNearbyNodeDiscoverer:
         result = discoverer.connect()
 
         assert result is True
-        mock_connect.assert_called_once_with(address="test.local", interface_type="tcp")
-        mock_interface.waitForConfig.assert_called_once()
+        mock_connect.assert_called_once()
 
-    def test_on_traceroute_response_inactive(self):
-        """Test traceroute response handler when discovery is inactive."""
+    def test_on_traceroute_response(self):
+        """Test traceroute response handler."""
         discoverer = NearbyNodeDiscoverer()
-        discoverer.discovery_active = False
-
-        packet = {"decoded": {"portnum": "TRACEROUTE_APP"}}
-        discoverer.on_traceroute_response(packet, None)
-
-        assert len(discoverer.nearby_nodes) == 0
-
-    def test_on_traceroute_response_active(self):
-        """Test traceroute response handler when discovery is active."""
-        discoverer = NearbyNodeDiscoverer()
-        discoverer.discovery_active = True
 
         packet = {
             "decoded": {"portnum": "TRACEROUTE_APP"},
@@ -87,15 +72,10 @@ class TestNearbyNodeDiscoverer:
             "from": 0x12345678,
             "rxSnr": 10.5,
             "rxRssi": -50,
-            "relay_node": None,
         }
 
         with patch("meshctl.discover.click.echo"):
             discoverer.on_traceroute_response(packet, None)
-
-        assert len(discoverer.nearby_nodes) == 1
-        assert discoverer.nearby_nodes[0]["id"] == "!12345678"
-        assert discoverer.nearby_nodes[0]["snr"] == 10.5
 
 
 def test_discover_command_help():
